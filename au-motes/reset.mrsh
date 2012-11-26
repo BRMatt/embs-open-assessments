@@ -4,4 +4,4 @@ moma-load logger
 moma-load SINKA
 mote-create
 1 moma-load logger
-1 moma-load TRANSMITTER
+1 moma-load PRIMO

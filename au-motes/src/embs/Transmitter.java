@@ -76,19 +76,13 @@ public class Transmitter {
 	 */
 	static private long maxChannelObserve = Time.toTickSpan(Time.MILLISECS, 3000);
 	
-	/**
-	 * The id of the LED that has been lit up to indicate a received packet
-	 */
-	static private byte  blinkLED = (byte) 2;
-	static private Timer blinkTimer = new Timer();
-	
 	static {
 		// Open the default radio
         radio.open(Radio.DID, null, 0, 0);
         
         // Set channel 
         radio.setChannel(sinkAChannel);
-        radio.setPanId(sinkAChannel, true);
+        radio.setPanId(0x11 + sinkAChannel, true);
         radio.setShortAddr(0x14);
         
      // register delegate for received frames
@@ -123,13 +117,8 @@ public class Transmitter {
             }
         });
         
-        blinkTimer.setCallback(new TimerEvent(null) {
-        	public void invoke(byte param, long time) {
-        		Transmitter.stopLEDBlink(param, time);
-        	}
-        });
-        
         LED.setState((byte) 0x0, (byte) 0x1);
+        radio.startRx(Device.ASAP, 0, Time.currentTicks()+0x7FFFFFFF);
 	}
 
 	protected static int onReceive(int flags, byte[] data, int len, int WARN, long time) {
@@ -147,54 +136,19 @@ public class Transmitter {
 		Logger.flush(Mote.WARN);
 		Logger.flush(Mote.WARN);
 		
-		blinkLedForChannelReceive(currentChannel);
 		updateChannelTokens(currentChannel, data[6], time);
 		
 		return 0;
 	}
 
 	
-	/**
-	 * Callback invoked when entering Sink C's receive phase
-	 * @param param
-	 * @param time
-	 */
-	protected static void broadcastSinkC(byte param, long time) {
-		byte currentChannel = radio.getChannel();
-		// TODO Auto-generated method stub
-		
-		radio.setChannel(currentChannel);
-		
-	}
-
-	/**
-	 * Callback invoked when entering Sink B's receive phase
-	 * @param param
-	 * @param time
-	 */
-	protected static void broadcastSinkB(byte param, long time) {
-		byte currentChannel = radio.getChannel();
-		// TODO Auto-generated method stub
-		
-		radio.setChannel(currentChannel);
-	}
-
-	/**
-	 * Callback invoked when entering Sink A's receive phase
-	 * @param param
-	 * @param time
-	 */
-	protected static void broadcastSinkA(byte param, long time) {
-		byte currentChannel = radio.getChannel();
-		// TODO Auto-generated method stub
-		 
-		radio.setChannel(currentChannel);
-	}
+	
 
 	protected static void channelSwitchAlert(byte param, long time) {
 		byte currentChannel = (byte) radio.getChannel();
-		byte newChannel     = (byte) (currentChannel == sinkCChannel ? sinkAChannel : currentChannel + 1);
-
+		//byte newChannel     = (byte) (currentChannel == sinkCChannel ? sinkAChannel : currentChannel + 1);
+		byte newChannel = currentChannel;
+		
 		scheduleReceptionPeriod(currentChannel);
 		
 		Logger.appendString(csr.s2b("Switching from listening on channel "));
@@ -205,6 +159,9 @@ public class Transmitter {
 		Logger.flush(Mote.WARN);
 		
 		radio.setChannel(newChannel);
+		radio.setChannel(newChannel);
+        radio.setPanId(0x11 + newChannel, true);
+        
 		LED.setState(currentChannel, (byte) 0x0);
 		LED.setState(newChannel, (byte) 0x1);
 		
@@ -317,6 +274,43 @@ public class Transmitter {
 	}
 	
 	/**
+	 * Callback invoked when entering Sink C's receive phase
+	 * @param param
+	 * @param time
+	 */
+	protected static void broadcastSinkC(byte param, long time) {
+		byte currentChannel = radio.getChannel();
+		// TODO Auto-generated method stub
+		
+		radio.setChannel(currentChannel);
+		
+	}
+
+	/**
+	 * Callback invoked when entering Sink B's receive phase
+	 * @param param
+	 * @param time
+	 */
+	protected static void broadcastSinkB(byte param, long time) {
+		byte currentChannel = radio.getChannel();
+		// TODO Auto-generated method stub
+		
+		radio.setChannel(currentChannel);
+	}
+
+	/**
+	 * Callback invoked when entering Sink A's receive phase
+	 * @param param
+	 * @param time
+	 */
+	protected static void broadcastSinkA(byte param, long time) {
+		byte currentChannel = radio.getChannel();
+		// TODO Auto-generated method stub
+		 
+		radio.setChannel(currentChannel);
+	}
+	
+	/**
 	 * Get the minimum received sequence number for the specified channel
 	 * @param currentChannel
 	 * @return
@@ -371,28 +365,7 @@ public class Transmitter {
 				return 0;
 		} 
 	}
-	
-	/**
-	 * Timer callback for stopping the receive packet led
-	 * @param param
-	 * @param time
-	 */
-	protected static void stopLEDBlink(byte param, long time) {
-		LED.setState(blinkLED, (byte) 0);
-	}
-	
-	/**
-	 * Turns on an LED that indicates we've received a packet
-	 * @param currentChannel
-	 */
-	private static void blinkLedForChannelReceive(byte currentChannel) {
-		// TODO Auto-generated method stub
-		blinkLED = (byte) (currentChannel == sinkAChannel ? sinkCChannel : currentChannel - 1);
-		
-		LED.setState(blinkLED, (byte) 1);
-		
-		blinkTimer.setAlarmBySpan(Time.toTickSpan(Time.MILLISECS, 250));
-	}
+
 
 	
 	private static byte max(byte a, byte b) {
