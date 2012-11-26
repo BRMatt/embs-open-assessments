@@ -62,6 +62,8 @@ public class Transmitter {
 	static private Timer sinkBBroadcastTimer = new Timer();
 	static private Timer sinkCBroadcastTimer = new Timer();
 	
+	
+	
 	/**
 	 * Times at which we should stop broadcasting to respective motes
 	 */
@@ -74,6 +76,12 @@ public class Transmitter {
 	 */
 	static private long maxChannelObserve = Time.toTickSpan(Time.MILLISECS, 3000);
 	
+	/**
+	 * The id of the LED that has been lit up to indicate a received packet
+	 */
+	static private byte  blinkLED = (byte) 2;
+	static private Timer blinkTimer = new Timer();
+	
 	static {
 		// Open the default radio
         radio.open(Radio.DID, null, 0, 0);
@@ -85,8 +93,8 @@ public class Transmitter {
         
      // register delegate for received frames
         radio.setRxHandler(new DevCallback(null){
-                public int invoke (int flags, byte[] data, int len, int info, long time) {
-                    return  Transmitter.onReceive(flags, data, len, info, time);
+                public int invoke (int flags, byte[] data, int len, int WARN, long time) {
+                    return  Transmitter.onReceive(flags, data, len, WARN, time);
                 }
             });
         
@@ -115,9 +123,16 @@ public class Transmitter {
             }
         });
         
+        blinkTimer.setCallback(new TimerEvent(null) {
+        	public void invoke(byte param, long time) {
+        		Transmitter.stopLEDBlink(param, time);
+        	}
+        });
+        
+        LED.setState((byte) 0x0, (byte) 0x1);
 	}
 
-	protected static int onReceive(int flags, byte[] data, int len, int info, long time) {
+	protected static int onReceive(int flags, byte[] data, int len, int WARN, long time) {
 		if (data == null) {
 			// Make sure we're always receiving
 			radio.startRx(Device.ASAP, 0, Time.currentTicks()+0x7FFFFFFF);
@@ -127,11 +142,18 @@ public class Transmitter {
 		
 		byte currentChannel = radio.getChannel();
 		
+		Logger.appendString(csr.s2b("received packet on channel "));
+		Logger.appendByte(currentChannel);
+		Logger.flush(Mote.WARN);
+		Logger.flush(Mote.WARN);
+		
+		blinkLedForChannelReceive(currentChannel);
 		updateChannelTokens(currentChannel, data[6], time);
 		
 		return 0;
 	}
 
+	
 	/**
 	 * Callback invoked when entering Sink C's receive phase
 	 * @param param
@@ -165,28 +187,29 @@ public class Transmitter {
 	protected static void broadcastSinkA(byte param, long time) {
 		byte currentChannel = radio.getChannel();
 		// TODO Auto-generated method stub
-		
+		 
 		radio.setChannel(currentChannel);
 	}
 
 	protected static void channelSwitchAlert(byte param, long time) {
 		byte currentChannel = (byte) radio.getChannel();
-		byte newChannel     = currentChannel == sinkCChannel ? sinkAChannel : (byte) currentChannel++;
+		byte newChannel     = (byte) (currentChannel == sinkCChannel ? sinkAChannel : currentChannel + 1);
 
 		scheduleReceptionPeriod(currentChannel);
 		
-		Logger.appendString(csr.s2b("Switching from broadcasting on channel "));
+		Logger.appendString(csr.s2b("Switching from listening on channel "));
 		Logger.appendByte(currentChannel);
 		Logger.appendString(csr.s2b(" to channel "));
 		Logger.appendByte(newChannel);
-		Logger.flush(Mote.INFO);
+		Logger.flush(Mote.WARN);
+		Logger.flush(Mote.WARN);
 		
 		radio.setChannel(newChannel);
 		LED.setState(currentChannel, (byte) 0x0);
 		LED.setState(newChannel, (byte) 0x1);
 		
 		// Re-schedule observe channel switch
-		switchChannelTimer.setAlarmBySpan(maxChannelObserve);
+		switchChannelTimer.setAlarmBySpan(Time.toTickSpan(Time.SECONDS, 3)); 
 	}
 
 	/**
@@ -195,18 +218,23 @@ public class Transmitter {
 	 * @param currentChannel
 	 */
 	private static void scheduleReceptionPeriod(byte currentChannel) {
-		long totalPeriodDifferences  = 0;
-		long estimatedPeriod         = 0;
-		long periodsLeft             = 0;
-		long timeUntilBroadcastStart = 0;
 		int maxSequenceNumber        = maxSequenceNumberForChannel(currentChannel);
 		int minSequenceNumber        = minSequenceNumberForChannel(currentChannel);
+		long sequenceDiff = maxSequenceNumber - minSequenceNumber;
+		long totalPeriodDifferences  = 0;
+		long estimatedPeriod         = 0;
+		long periodsLeft             = Transmitter.abs(1 - minSequenceNumber);
+		long timeUntilBroadcastStart = 0;
 		
 		Logger.appendString(csr.s2b("min/max sequenceNumbers: "));
 		Logger.appendInt(minSequenceNumber);
 		Logger.appendString(csr.s2b("/"));
 		Logger.appendInt(maxSequenceNumber);
-		Logger.flush(Mote.INFO);
+		Logger.flush(Mote.WARN);
+		
+		if (sequenceDiff == 0) {
+			return;
+		}
 		
 		// We start at +1 minimum received so that we don't compare one time to 0
 		// e.g. for data [time1, time2, time3] we compute (time2 - time1) + (time3 - time2) 
@@ -214,9 +242,14 @@ public class Transmitter {
 			totalPeriodDifferences += timeForSequenceNumber(currentChannel, periodI) - timeForSequenceNumber(currentChannel, periodI - 1);
 		}
 		
+		Logger.appendString(csr.s2b("calculated period is: "));
+		Logger.appendLong(totalPeriodDifferences);
+		Logger.appendString(csr.s2b("/"));
+		Logger.appendLong(sequenceDiff);
+		Logger.flush(Mote.WARN); 
+		
 		// minSequenceNumber can only go as low as 1, e.g. in example above difference = 3-1 = 2
-		estimatedPeriod = totalPeriodDifferences / (maxSequenceNumber - minSequenceNumber);
-		periodsLeft = Math.abs(1 - minSequenceNumber);
+		estimatedPeriod = totalPeriodDifferences / sequenceDiff;
 		
 		// TODO: Shouldn't this take into account the diff between last receive time and now?
 		timeUntilBroadcastStart = periodsLeft * estimatedPeriod;
@@ -246,17 +279,17 @@ public class Transmitter {
 		switch (channel) {
 			case sinkAChannel:
 				sinkATimes[sequenceNumber] = timeReceivedAt;
-				sinkAMaxSequenceNumber = Math.max((int) sequenceNumber, sinkAMaxSequenceNumber);
+				sinkAMaxSequenceNumber = Transmitter.max((int) sequenceNumber, sinkAMaxSequenceNumber);
 				sinkAMinSequenceNumber = sequenceNumber;
 				break;
 			case sinkBChannel:
 				sinkBTimes[sequenceNumber] = timeReceivedAt;
-				sinkBMaxSequenceNumber = Math.max((int) sequenceNumber, sinkBMaxSequenceNumber);
+				sinkBMaxSequenceNumber = Transmitter.max((int) sequenceNumber, sinkBMaxSequenceNumber);
 				sinkBMinSequenceNumber = sequenceNumber;
 				break;
 			case sinkCChannel:
 				sinkCTimes[sequenceNumber] = timeReceivedAt;
-				sinkCMaxSequenceNumber = Math.max((int) sequenceNumber, sinkCMaxSequenceNumber);
+				sinkCMaxSequenceNumber = Transmitter.max((int) sequenceNumber, sinkCMaxSequenceNumber);
 				sinkCMinSequenceNumber = sequenceNumber;
 				break;
 		}
@@ -296,8 +329,9 @@ public class Transmitter {
 				return sinkBMinSequenceNumber;
 			case sinkCChannel:
 				return sinkCMinSequenceNumber;
+			default:
+				return 0;
 		}
-		throw new RuntimeException("OUTSIDE OF CHANNEL RANGE");
 	}
 
 	/**
@@ -313,8 +347,9 @@ public class Transmitter {
 				return sinkBMaxSequenceNumber;
 			case sinkCChannel:
 				return sinkCMaxSequenceNumber;
-		}
-		throw new RuntimeException("OUTSIDE OF CHANNEL RANGE");
+			default:
+				return 0;
+		} 
 	}
 
 	/**
@@ -332,7 +367,47 @@ public class Transmitter {
 				return sinkBTimes[sequenceNumber];
 			case sinkCChannel:
 				return sinkCTimes[sequenceNumber];
-		}
-		throw new RuntimeException("OUTSIDE OF CHANNEL RANGE");
+			default:
+				return 0;
+		} 
+	}
+	
+	/**
+	 * Timer callback for stopping the receive packet led
+	 * @param param
+	 * @param time
+	 */
+	protected static void stopLEDBlink(byte param, long time) {
+		LED.setState(blinkLED, (byte) 0);
+	}
+	
+	/**
+	 * Turns on an LED that indicates we've received a packet
+	 * @param currentChannel
+	 */
+	private static void blinkLedForChannelReceive(byte currentChannel) {
+		// TODO Auto-generated method stub
+		blinkLED = (byte) (currentChannel == sinkAChannel ? sinkCChannel : currentChannel - 1);
+		
+		LED.setState(blinkLED, (byte) 1);
+		
+		blinkTimer.setAlarmBySpan(Time.toTickSpan(Time.MILLISECS, 250));
+	}
+
+	
+	private static byte max(byte a, byte b) {
+		return a > b ? a : b;
+	}
+	
+	private static int max(int a, int b) {
+		return a > b ? a : b;
+	}
+	
+	private static int abs(int val) { 
+		return val < 0 ? -val : val;
+	}
+	
+	private static long abs(long val) { 
+		return val < 0 ? -val : val;
 	}
 }

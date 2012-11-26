@@ -7,7 +7,7 @@ public class SinkC {
 
     private static Timer  tsend;
     private static Timer  tstart;
-    private static boolean light=false;
+    private static boolean light=true;
     
     private static byte[] xmit;
     private static long   wait;
