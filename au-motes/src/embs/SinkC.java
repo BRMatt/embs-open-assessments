@@ -81,9 +81,6 @@ public class SinkC {
         
         
         tstart.setAlarmBySpan(Time.toTickSpan(Time.SECONDS, 5)); //starts the protocol 5 seconds after constructing the assembly
-        
-        
-        
     }
 
     // Called when a frame is received or at the end of a reception period 

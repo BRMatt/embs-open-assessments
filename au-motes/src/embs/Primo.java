@@ -53,11 +53,6 @@ public class Primo {
 	static private long[] sinkPeriod    = new long[3];
 	
 	/**
-	 * What we estimate as the highest sequence number for all sinks 
-	 */
-	static private int[]  sinkEstimatedMaxNumbers = new int[3];
-	
-	/**
 	 * The maximum known sequence numbers for all sinks 
 	 */
 	static private int[]  sinkConfirmedMaxNumbers = new int[3];
@@ -252,15 +247,31 @@ public class Primo {
 	}
 	
 	/**
-	 * Chooses the next channel that needs to be observed
+	 * Chooses the next channel that needs to be observed to determine a 
+	 * sink's period.
+	 * 
+	 * The criteria for the next channel is that its period must not have been determined
+	 * 
+	 * 
+	 * @return False if all channels have had their periods determined, else True 
 	 */
-	private static void observeNextChannel() {
+	private static boolean observeNextChannel() {
 		byte currentChannel = radio.getChannel();
-		byte nextChannel    = (byte) (currentChannel == sinkCChannel ? sinkAChannel : currentChannel + 1);
+		byte nextChannel    = currentChannel;
 		
-		switchChannel(nextChannel);
-		resetPeriodDetection();
-		//stopObservingTimer.setAlarmBySpan(maxChannelObserve);
+		do {
+			nextChannel = (byte) (nextChannel == sinkCChannel ? sinkAChannel : nextChannel + 1);
+		} while(nextChannel != currentChannel && sinkPeriod[nextChannel] > 0);
+		
+		if (nextChannel != currentChannel) {
+			switchChannel(nextChannel);
+			resetPeriodDetection();
+			//stopObservingTimer.setAlarmBySpan(maxChannelObserve);
+			
+			return true;
+		}
+		
+		return false;
 	}
 	
 	/**
@@ -281,19 +292,17 @@ public class Primo {
 
 	protected static void broadcastToC(byte arg0, long time) {
 		broadcastToSink(sinkCChannel);
-		// Just clock in a few milliseconds before the sink
-		// is scheduled to emit its max sequence number
-		
-		
-		
+		reschedule(sinkCChannel, time);
 	}
 
 	protected static void broadcastToB(byte arg0, long time) {
 		broadcastToSink(sinkBChannel);
+		reschedule(sinkBChannel, time);
 	}
 
 	protected static void broadcastToA(byte arg0, long time) {
 		broadcastToSink(sinkAChannel);
+		reschedule(sinkAChannel, time);
 	}
 	
 	private static void broadcastToSink(byte broadcastChannel) {
@@ -320,22 +329,36 @@ public class Primo {
 	}
 	
 	private static void reschedule(byte channel, long receiveTime) {
-		long startSequenceTime = receiveTime + (sinkPeriod[sinkCChannel] * 12);
-		long broadcastObserveTime = startSequenceTime - Time.toTickSpan(Time.MILLISECS, 120);
-		long maxSequenceNumberObserveTime = startSequenceTime + sinkEstimatedMaxNumbers[channel];
+		long period = sinkPeriod[channel];
+		
+		long startSequenceTime    = receiveTime + (11 * period);
+		long nextReceptionPeriod  = startSequenceTime + (sinkConfirmedMaxNumbers[channel] * period);
+		long broadcastObserveTime = (nextReceptionPeriod - period - (period / 3));
+		
+		Logger.appendString(csr.s2b("Rescheduling channel "));
+		Logger.appendByte(channel);
+		Logger.appendString(csr.s2b(" broadcast for "));
+		Logger.appendLong(nextReceptionPeriod);
+		Logger.appendString(csr.s2b("("));
+		Logger.appendLong(Time.fromTickSpan(Time.MILLISECS, nextReceptionPeriod));
+		Logger.appendString(csr.s2b(") estimated max sequence#: "));
+		Logger.appendInt(sinkConfirmedMaxNumbers[channel]);
+		Logger.appendString(csr.s2b("*"));
+		Logger.appendLong(Time.fromTickSpan(Time.MILLISECS, sinkPeriod[channel]));
+		Logger.flush(Mote.WARN);
 		
 		switch(channel) {
 		case sinkAChannel:
 			sinkAMaxObserverTimer.setAlarmTime(broadcastObserveTime);
-			sinkABroadcastTimer.setAlarmTime(maxSequenceNumberObserveTime);
+			sinkABroadcastTimer.setAlarmTime(nextReceptionPeriod);
 			break;
 		case sinkBChannel:
 			sinkBMaxObserverTimer.setAlarmTime(broadcastObserveTime);
-			sinkBBroadcastTimer.setAlarmTime(maxSequenceNumberObserveTime);
+			sinkBBroadcastTimer.setAlarmTime(nextReceptionPeriod);
 			break;
 		case sinkCChannel:
 			sinkCMaxObserverTimer.setAlarmTime(broadcastObserveTime);
-			sinkCBroadcastTimer.setAlarmTime(maxSequenceNumberObserveTime);
+			sinkCBroadcastTimer.setAlarmTime(nextReceptionPeriod);
 		}
 	}
 
@@ -399,6 +422,14 @@ public class Primo {
 	 */
 	static private void switchChannel(byte channel, boolean stopStartRadio) {
 		byte currentChannel = radio.getChannel();
+		
+		if (currentChannel == channel) {
+			Logger.appendString(csr.s2b("Already on channel "));
+			Logger.appendByte(channel);
+			Logger.appendString(csr.s2b(" No need to switch back"));
+			Logger.flush(Mote.WARN);
+			return;
+		}
 		
 		Logger.appendString(csr.s2b("Switching from channel "));
 		Logger.appendByte(currentChannel);
