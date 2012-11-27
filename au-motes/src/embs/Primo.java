@@ -1,5 +1,7 @@
 package embs;
 
+import java.nio.channels.Pipe.SinkChannel;
+
 import com.ibm.saguaro.logger.Logger;
 import com.ibm.saguaro.system.DevCallback;
 import com.ibm.saguaro.system.Device;
@@ -39,13 +41,26 @@ public class Primo {
 	static private Timer sinkCBroadcastTimer = new Timer();
 	
 	/**
+	 * Timers that are used to observe the maximum
+	 */
+	static private Timer sinkAMaxObserverTimer = new Timer();
+	static private Timer sinkBMaxObserverTimer = new Timer();
+	static private Timer sinkCMaxObserverTimer = new Timer();
+	
+	/**
 	 * A collection of all the periods we have estimated
 	 */
-	static private long[] sinkPeriods    = new long[3];
+	static private long[] sinkPeriod    = new long[3];
+	
+	/**
+	 * What we estimate as the highest sequence number for all sinks 
+	 */
+	static private int[]  sinkEstimatedMaxNumbers = new int[3];
+	
 	/**
 	 * The maximum known sequence numbers for all sinks 
 	 */
-	static private int[]  sinkMaxNumbers = new int[3];
+	static private int[]  sinkConfirmedMaxNumbers = new int[3];
 	
 	/**
 	 * The maximum amount of time we should spend observing a single channel
@@ -105,12 +120,27 @@ public class Primo {
 				Primo.broadcastToC(arg0, time);
 			}
 		});
-		
+		sinkAMaxObserverTimer.setCallback(new TimerEvent(null) {
+			public void invoke(byte arg0, long time) {
+				Primo.observeMaxForA(arg0, time);
+			}
+		});
+		sinkBMaxObserverTimer.setCallback(new TimerEvent(null) {
+			public void invoke(byte arg0, long time) {
+				Primo.observeMaxForB(arg0, time);
+			}
+		});
+		sinkCMaxObserverTimer.setCallback(new TimerEvent(null) {
+			public void invoke(byte arg0, long time) {
+				Primo.observeMaxForC(arg0, time);
+			}
+		});
 		stopObservingTimer.setCallback(new TimerEvent(null) {
 			public void invoke(byte arg0, long time) {
 				Primo.stopObserving(arg0, time);
 			}
 		});
+		
 		radio.startRx(Device.ASAP, 0, Time.currentTicks() + 0x7FFFFFFF);
 	}
 
@@ -121,14 +151,24 @@ public class Primo {
 			return 0;
 		}
 
-		byte currentSink   = (byte) radio.getChannel();
-		
+		byte currentSink    = (byte) radio.getChannel();
+		int  sequenceNumber = (int) data[11];
 		
 		Logger.appendString(csr.s2b("Channel "));
 		Logger.appendByte(radio.getChannel());
 		Logger.appendString(csr.s2b(": "));
 		
-		handleCallibration(time, currentSink, data);
+		if(sinkPeriod[currentSink] <= 0) {
+			handleCallibration(time, currentSink, sequenceNumber);
+		} else {
+			// Never cross the streams...
+			if(sequenceNumber > sinkConfirmedMaxNumbers[currentSink]) {
+				sinkConfirmedMaxNumbers[currentSink] = sequenceNumber;
+			}
+			
+			scheduledBroadcast(time + (sinkPeriod[currentSink] * sequenceNumber));
+		}
+		
 
 		Logger.flush(Mote.WARN);
 		
@@ -136,8 +176,32 @@ public class Primo {
 	}
 	
 	
-	private static void handleCallibration(long time, byte currentSink, byte[] data) {
-		int  sequenceNumber        = (int) data[11];
+	protected static void observeMaxForB(byte arg0, long time) {
+		switchChannel(sinkBChannel);
+		resetPeriodDetection();
+	}
+
+
+	protected static void observeMaxForC(byte arg0, long time) {
+		switchChannel(sinkCChannel);
+		resetPeriodDetection();
+	}
+
+
+	protected static void observeMaxForA(byte arg0, long time) {
+		switchChannel(sinkAChannel);
+		resetPeriodDetection();
+	}
+
+
+	/**
+	 * Attempts to calibrate the sink on the current channel based on the observed sequence numbers
+	 * 
+	 * @param time           The time this sequence number was observed at
+	 * @param currentSink    The id of the current sink (and its channel)
+	 * @param sequenceNumber The received sequence number
+	 */
+	private static void handleCallibration(long time, byte currentSink, int sequenceNumber) {
 		long estimatedPeriod       = 0;
 		long receivePeriodStartsAt = 0;
 		
@@ -170,8 +234,8 @@ public class Primo {
 		}
 		
 
-		sinkPeriods[currentSink] = estimatedPeriod;
-		sinkMaxNumbers[currentSink] = maxSequenceNumber;
+		sinkPeriod[currentSink] = estimatedPeriod;
+		sinkConfirmedMaxNumbers[currentSink] = maxSequenceNumber;
 		
 		Logger.appendString(csr.s2b(" Period: "));
 		Logger.appendLong(estimatedPeriod);
@@ -179,15 +243,17 @@ public class Primo {
 		Logger.appendLong(Time.fromTickSpan(Time.MILLISECS, estimatedPeriod));
 		Logger.appendString(csr.s2b(") "));
 		
-		if(successfullyScheduledBroadcast(receivePeriodStartsAt)) {
+		if(scheduledBroadcast(receivePeriodStartsAt)) {
 			Logger.appendString(csr.s2b(" // Scheduled at: "));
 			Logger.appendLong(Time.fromTickSpan(Time.MILLISECS, receivePeriodStartsAt));
 			Logger.flush(Mote.WARN);
 			observeNextChannel();
-		} else {
-			
 		}
 	}
+	
+	/**
+	 * Chooses the next channel that needs to be observed
+	 */
 	private static void observeNextChannel() {
 		byte currentChannel = radio.getChannel();
 		byte nextChannel    = (byte) (currentChannel == sinkCChannel ? sinkAChannel : currentChannel + 1);
@@ -215,6 +281,11 @@ public class Primo {
 
 	protected static void broadcastToC(byte arg0, long time) {
 		broadcastToSink(sinkCChannel);
+		// Just clock in a few milliseconds before the sink
+		// is scheduled to emit its max sequence number
+		
+		
+		
 	}
 
 	protected static void broadcastToB(byte arg0, long time) {
@@ -247,6 +318,26 @@ public class Primo {
 		
 		switchChannel(originalChannel);
 	}
+	
+	private static void reschedule(byte channel, long receiveTime) {
+		long startSequenceTime = receiveTime + (sinkPeriod[sinkCChannel] * 12);
+		long broadcastObserveTime = startSequenceTime - Time.toTickSpan(Time.MILLISECS, 120);
+		long maxSequenceNumberObserveTime = startSequenceTime + sinkEstimatedMaxNumbers[channel];
+		
+		switch(channel) {
+		case sinkAChannel:
+			sinkAMaxObserverTimer.setAlarmTime(broadcastObserveTime);
+			sinkABroadcastTimer.setAlarmTime(maxSequenceNumberObserveTime);
+			break;
+		case sinkBChannel:
+			sinkBMaxObserverTimer.setAlarmTime(broadcastObserveTime);
+			sinkBBroadcastTimer.setAlarmTime(maxSequenceNumberObserveTime);
+			break;
+		case sinkCChannel:
+			sinkCMaxObserverTimer.setAlarmTime(broadcastObserveTime);
+			sinkCBroadcastTimer.setAlarmTime(maxSequenceNumberObserveTime);
+		}
+	}
 
 	/**
 	 * Tries to schedule a broadcast period to the specified mote
@@ -254,7 +345,7 @@ public class Primo {
 	 * @param The estimated time of the sink's receive period
 	 * @return
 	 */
-	static private boolean successfullyScheduledBroadcast(long receiveTime) {
+	static private boolean scheduledBroadcast(long receiveTime) {
 		if (receiveTime == 0) {
 			return false;
 		}
