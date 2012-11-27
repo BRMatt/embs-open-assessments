@@ -1,4 +1,7 @@
 saguaro-start
 mote-create
 moma-load logger
-moma-load TRANSMITTER
+moma-load PRIMO
+mote-create
+1 moma-load logger
+1 moma-load SINKA
