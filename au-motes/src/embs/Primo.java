@@ -14,26 +14,43 @@ import com.ibm.saguaro.system.csr;
 
 public class Primo {
 
+	/**
+	 * Useful constants for referring to the channels each sink is on
+	 */
 	static final byte sinkAChannel = 0;
 	static final byte sinkBChannel = 1;
 	static final byte sinkCChannel = 2;
 
+	/**
+	 * Access to our radio interface
+	 */
 	static private Radio radio = new Radio();
 
 	/**
 	 * Timer for scheduling when we should start observing the next channel
 	 */
-	static private Timer switchChannelTimer = new Timer();
+	static private Timer stopObservingTimer  = new Timer();
 	
+	/**
+	 * Timers that indicate the start of a sink's next reception phase
+	 */
 	static private Timer sinkABroadcastTimer = new Timer();
 	static private Timer sinkBBroadcastTimer = new Timer();
 	static private Timer sinkCBroadcastTimer = new Timer();
-
+	
 	/**
-	 * The maximum amount of time we can spend observing a single channel
+	 * A collection of all the periods we have estimated
 	 */
-	static private long maxChannelObserve = Time.toTickSpan(Time.MILLISECS,
-			3000);
+	static private long[] sinkPeriods    = new long[3];
+	/**
+	 * The maximum known sequence numbers for all sinks 
+	 */
+	static private int[]  sinkMaxNumbers = new int[3];
+	
+	/**
+	 * The maximum amount of time we should spend observing a single channel
+	 */
+	static private long maxChannelObserve = Time.toTickSpan(Time.MILLISECS, 3500);
 
 	/**
 	 * Set of observed sequence numbers across channels. Key is the sequence
@@ -41,6 +58,10 @@ public class Primo {
 	 */
 	static private long[] broadcastTimes = new long[11];
 
+	/**
+	 * Values for working out the period for the channel currently being observed 
+	 * Used to try and estimate the period of a channel
+	 */
 	static private int maxSequenceNumber = 0;
 	static private int minSequenceNumber = 100;
 	static private int receivedSequenceNumbers = 0;
@@ -84,6 +105,12 @@ public class Primo {
 				Primo.broadcastToC(arg0, time);
 			}
 		});
+		
+		stopObservingTimer.setCallback(new TimerEvent(null) {
+			public void invoke(byte arg0, long time) {
+				Primo.stopObserving(arg0, time);
+			}
+		});
 		radio.startRx(Device.ASAP, 0, Time.currentTicks() + 0x7FFFFFFF);
 	}
 
@@ -94,24 +121,83 @@ public class Primo {
 			return 0;
 		}
 
-		Logger.appendString(csr.s2b("Reading sequence number"));
-		Logger.flush(Mote.WARN);
+		byte currentSink   = (byte) radio.getChannel();
 		int sequenceNumber = (int) data[11];
+		
+		Logger.appendString(csr.s2b("Channel "));
+		Logger.appendByte(radio.getChannel());
+		Logger.appendString(csr.s2b(": "));
+		Logger.appendInt(sequenceNumber);
+		Logger.appendString(csr.s2b(" "));
+		
+		
+		long estimatedPeriod       = 0;
+		long receivePeriodStartsAt = 0;
+		
+		// n == 1 and t < 12 * period 
+		if(sequenceNumber == 1 && maxSequenceNumber == 1) {
+			long beaconTimeDiff = (time - broadcastTimes[sequenceNumber]);
+			
+			estimatedPeriod = (beaconTimeDiff / 12);
+			receivePeriodStartsAt = time + estimatedPeriod;
+			
+			Logger.appendString(csr.s2b("N=1"));
+		} else {
+			maxSequenceNumber = sequenceNumber > maxSequenceNumber ? sequenceNumber : maxSequenceNumber;
+			minSequenceNumber = sequenceNumber < minSequenceNumber ? sequenceNumber : minSequenceNumber;
 
-		maxSequenceNumber = Primo.max(sequenceNumber, maxSequenceNumber);
-		minSequenceNumber = Primo.min(sequenceNumber, minSequenceNumber);
+			broadcastTimes[sequenceNumber] = time;
+			++receivedSequenceNumbers;
+
+			estimatedPeriod = estimatePeriodFromSequence();
+			
+			if(estimatedPeriod > 0) {
+				receivePeriodStartsAt = broadcastTimes[minSequenceNumber] + (estimatedPeriod *  minSequenceNumber);
+			}
+			
+			Logger.appendString(csr.s2b("   "));
+		}
 		
-		broadcastTimes[sequenceNumber] = time;
-		++receivedSequenceNumbers;
+	sinkMaxNumbers
+		sinkPeriods[currentSink] = estimatedPeriod;
 		
-		if(successfullyScheduledBroadcast()) {
-			switchChannel(nextChannel(radio.getChannel()));
-			resetPeriodDetection();
+		Logger.appendString(csr.s2b(" Period: "));
+		Logger.appendLong(estimatedPeriod);
+		Logger.appendString(csr.s2b("("));
+		Logger.appendLong(Time.fromTickSpan(Time.MILLISECS, estimatedPeriod));
+		Logger.appendString(csr.s2b(") "));
+		
+		if(successfullyScheduledBroadcast(receivePeriodStartsAt)) {
+			Logger.appendString(csr.s2b(" // Scheduled at: "));
+			Logger.appendLong(Time.fromTickSpan(Time.MILLISECS, receivePeriodStartsAt));
+			Logger.flush(Mote.WARN);
+			observeNextChannel();
+		} else {
+			Logger.flush(Mote.WARN);
 		}
 
+		
 		return 0;
 	}
 	
+	private static void observeNextChannel() {
+		byte currentChannel = radio.getChannel();
+		byte nextChannel    = (byte) (currentChannel == sinkCChannel ? sinkAChannel : currentChannel + 1);
+		
+		switchChannel(nextChannel);
+		resetPeriodDetection();
+		//stopObservingTimer.setAlarmBySpan(maxChannelObserve);
+	}
+	
+	/**
+	 * Don't stick around on a channel
+	 * @param arg0
+	 * @param time
+	 */
+	protected static void stopObserving(byte arg0, long time) {
+		observeNextChannel();
+	}
+
 	private static void resetPeriodDetection() {
 		maxSequenceNumber = 0;
 		minSequenceNumber = 100;
@@ -143,7 +229,11 @@ public class Primo {
         Util.set16le(xmit, 5, 0xFFFF); // broadcast address 
         Util.set16le(xmit, 7, radio.getPanId()); // own PAN address 
         Util.set16le(xmit, 9, 0x14); // own short address 
-		xmit[11] = (byte) 14;
+		xmit[11] = (byte) 8;
+		
+		Logger.appendString(csr.s2b("Transmitting "));
+		Logger.appendByte(broadcastChannel);
+		Logger.flush(Mote.WARN);
 		
 		radio.transmit(Device.ASAP|Radio.TXMODE_POWER_MAX, xmit, 0, 12, 0);
 		
@@ -152,11 +242,11 @@ public class Primo {
 
 	/**
 	 * Tries to schedule a broadcast period to the specified mote
+	 * @param estimatedPeriod 
+	 * @param The estimated time of the sink's receive period
 	 * @return
 	 */
-	static private boolean successfullyScheduledBroadcast() {
-		long receiveTime = estimateReceiveTime();
-		
+	static private boolean successfullyScheduledBroadcast(long receiveTime) {
 		if (receiveTime == 0) {
 			return false;
 		}
@@ -173,7 +263,6 @@ public class Primo {
 				break;
 		}
 		
-		
 		return true;
 	}
 	
@@ -181,25 +270,18 @@ public class Primo {
 	 * Estimates the start of the receive period based on the observed payloads
 	 * @return
 	 */
-	static private long estimateReceiveTime() {
+	static private long estimatePeriodFromSequence() {
 		if (receivedSequenceNumbers < 2) {
 			return 0;
 		}
 		
 		long totalTicks = 0;
-		long avgPeriod  = 0;
 		
-		for(int i = minSequenceNumber + 1; i <= maxSequenceNumber; ++i) {
-			totalTicks += (broadcastTimes[i] - broadcastTimes[i -1]);
+		for(int i = maxSequenceNumber - 1; i >= minSequenceNumber; --i) {
+			totalTicks += broadcastTimes[i] - broadcastTimes[i + 1];
 		}
 		
-		avgPeriod = totalTicks / (receivedSequenceNumbers - 1); 
-		
-		Logger.appendString(csr.s2b("Average period is: "));
-		Logger.appendLong(Time.fromTickSpan(Time.MILLISECS, avgPeriod));
-		Logger.flush(Mote.WARN);
-		
-		return broadcastTimes[minSequenceNumber] + abs(avgPeriod *  minSequenceNumber);
+		return totalTicks / (receivedSequenceNumbers - 1);
 	}
 
 	/**
@@ -217,19 +299,19 @@ public class Primo {
 	 * @param stopStartRadio
 	 */
 	static private void switchChannel(byte channel, boolean stopStartRadio) {
-		Logger.appendString(csr.s2b("Switching from channel: "));
-		Logger.appendByte(radio.getChannel());
-		Logger.appendString(csr.s2b(" to: "));
+		byte currentChannel = radio.getChannel();
+		
+		Logger.appendString(csr.s2b("Switching from channel "));
+		Logger.appendByte(currentChannel);
+		Logger.appendString(csr.s2b(" to "));
 		Logger.appendByte(channel);
 		Logger.flush(Mote.WARN);
-
-		LED.setState(radio.getChannel(), (byte) 0x0);
+		
+		LED.setState(currentChannel, (byte) 0x0);
 		LED.setState(channel, (byte) 1);
 		
 		if(stopStartRadio) {
 			radio.stopRx();
-			Logger.appendString(csr.s2b("Radio stoppped"));
-			Logger.flush(Mote.WARN);
 		}
 		
 		radio.setChannel(channel);
@@ -238,32 +320,6 @@ public class Primo {
 		
 		if(stopStartRadio) {
 			radio.startRx(Device.ASAP, 0, Time.currentTicks() + 0x7FFFFFFF);
-			Logger.appendString(csr.s2b("Receiving started"));
-			Logger.flush(Mote.WARN);
 		}
-	}
-
-	static private byte nextChannel(byte currentChannel) {
-		return currentChannel == sinkCChannel ? sinkAChannel : ++currentChannel;
-	}
-	
-	static private byte previousChannel(byte currentChannel) {
-		return currentChannel == sinkAChannel ? sinkCChannel : --currentChannel;
-	}
-	
-	static private int max(int a, int b) {
-		return a > b ? a : b;
-	}
-
-	static private int min(int a, int b) {
-		return a < b ? a : b;
-	}
-	
-	static private int abs(int a) {
-		return a < 0 ? - a : a;
-	}
-	
-	static private long abs(long a) {
-		return a < 0 ? - a : a;
 	}
 }
