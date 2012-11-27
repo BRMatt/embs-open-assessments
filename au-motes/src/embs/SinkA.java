@@ -15,7 +15,7 @@ public class SinkA {
     private static int n = 8; // number of beacons of sync phase - sample only, assessment will use unknown values
     private static int nc;
     
-    private static int t = 600; // milliseconds between beacons - sample only, assessment will use unknown values 
+    private static int t = 500; // milliseconds between beacons - sample only, assessment will use unknown values 
     
     // settings for sink A
     private static byte channel = 0; // channel 11
@@ -25,16 +25,14 @@ public class SinkA {
     static {
         // Open the default radio
         radio.open(Radio.DID, null, 0, 0);
-        
-        
+
+
         // Set channel 
         radio.setChannel((byte)channel);
-        
-        
+
         // Set the PAN ID and the short address
         radio.setPanId(panid, true);
         radio.setShortAddr(address);
-
 
         // Prepare beacon frame with source and destination addressing
         xmit = new byte[12];
@@ -81,9 +79,6 @@ public class SinkA {
         
         
         tstart.setAlarmBySpan(Time.toTickSpan(Time.SECONDS, 5)); //starts the protocol 5 seconds after constructing the assembly
-        
-        
-        
     }
 
     // Called when a frame is received or at the end of a reception period 

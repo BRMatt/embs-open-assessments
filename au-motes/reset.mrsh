@@ -4,4 +4,10 @@ moma-load logger
 moma-load SINKA
 mote-create
 1 moma-load logger
-1 moma-load PRIMO
+1 moma-load SINKB
+mote-create
+2 moma-load logger
+2 moma-load SINKC
+mote-create
+3 moma-load logger
+3 moma-load PRIMO
