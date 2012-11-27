@@ -122,19 +122,30 @@ public class Primo {
 		}
 
 		byte currentSink   = (byte) radio.getChannel();
-		int sequenceNumber = (int) data[11];
+		
 		
 		Logger.appendString(csr.s2b("Channel "));
 		Logger.appendByte(radio.getChannel());
 		Logger.appendString(csr.s2b(": "));
+		
+		handleCallibration(time, currentSink, data);
+
+		Logger.flush(Mote.WARN);
+		
+		return 0;
+	}
+	
+	
+	private static void handleCallibration(long time, byte currentSink, byte[] data) {
+		int  sequenceNumber        = (int) data[11];
+		long estimatedPeriod       = 0;
+		long receivePeriodStartsAt = 0;
+		
 		Logger.appendInt(sequenceNumber);
 		Logger.appendString(csr.s2b(" "));
 		
 		
-		long estimatedPeriod       = 0;
-		long receivePeriodStartsAt = 0;
-		
-		// n == 1 and t < 12 * period 
+		// n == 1 and we haven't timed out while watching this
 		if(sequenceNumber == 1 && maxSequenceNumber == 1) {
 			long beaconTimeDiff = (time - broadcastTimes[sequenceNumber]);
 			
@@ -158,8 +169,9 @@ public class Primo {
 			Logger.appendString(csr.s2b("   "));
 		}
 		
-	sinkMaxNumbers
+
 		sinkPeriods[currentSink] = estimatedPeriod;
+		sinkMaxNumbers[currentSink] = maxSequenceNumber;
 		
 		Logger.appendString(csr.s2b(" Period: "));
 		Logger.appendLong(estimatedPeriod);
@@ -173,13 +185,9 @@ public class Primo {
 			Logger.flush(Mote.WARN);
 			observeNextChannel();
 		} else {
-			Logger.flush(Mote.WARN);
+			
 		}
-
-		
-		return 0;
 	}
-	
 	private static void observeNextChannel() {
 		byte currentChannel = radio.getChannel();
 		byte nextChannel    = (byte) (currentChannel == sinkCChannel ? sinkAChannel : currentChannel + 1);
