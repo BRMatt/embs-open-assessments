@@ -5,8 +5,10 @@ import com.ibm.saguaro.logger.*;
 
 public class SinkA {
 
-    private static Timer  tsend;
-    private static Timer  tstart;
+    private static Timer tsend;
+    private static Timer tstart;
+    private static Timer rEnd;
+    
     private static boolean light=true;
     
     private static byte[] xmit;
@@ -15,20 +17,19 @@ public class SinkA {
     private static int n = 6; // number of beacons of sync phase - sample only, assessment will use unknown values
     private static int nc;
     
-    private static long receptionStart;
-    private static long receptionEnd;
-    
     private static int t = 800; // milliseconds between beacons - sample only, assessment will use unknown values 
     
     // settings for sink A
     private static byte channel = 0; // channel 11
     private static byte panid = 0x11;
     private static byte address = 0x11;
+	private static boolean inReceivePeriod;
 
     static {
         // Open the default radio
         radio.open(Radio.DID, null, 0, 0);
 
+        radio.startRx(Device.ASAP, 0, Time.currentTicks() + 0x7FFFFFFF);
 
         // Set channel 
         radio.setChannel((byte)channel);
@@ -75,6 +76,12 @@ public class SinkA {
                     SinkA.restart(param, time);
                 }
             });
+        
+        rEnd.setCallback(new TimerEvent(null){
+        		public void invoke(byte param, long time){
+        			SinkA.stopReceivePeriod(param, time);
+        		}
+        });
 
             
         // Convert the periodic delay from ms to platform ticks
@@ -86,12 +93,9 @@ public class SinkA {
 
     // Called when a frame is received or at the end of a reception period 
     private static int onReceive (int flags, byte[] data, int len, int info, long time) {
-        if (data == null) { // marks end of reception period
-            // turn green LED off 
-	        LED.setState((byte)1, (byte)0);
-	        
-	        //set alarm to restart protocol
-	    	tstart.setAlarmBySpan(10*wait);
+        if (data == null) {
+        	radio.startRx(Device.ASAP, 0, Time.currentTicks() + 0x7FFFFFFF);
+            
                     
             return 0;
         }
@@ -114,7 +118,18 @@ public class SinkA {
     }
 
 
-    // Called on a timer alarm
+    protected static void stopReceivePeriod(byte param, long time) {
+		inReceivePeriod = false;
+		
+		// turn green LED off 
+        LED.setState((byte)1, (byte)0);
+        
+        //set alarm to restart protocol
+    	tstart.setAlarmBySpan(10*wait);
+	}
+
+
+	// Called on a timer alarm
     public static void periodicSend(byte param, long time) {
         
         if(nc>0){
@@ -127,12 +142,12 @@ public class SinkA {
         }
         else{
         	//start reception phase
-	        radio.startRx(Device.ASAP, 0, Time.currentTicks()+wait);
+	        
 	        // turn green LED on 
 	        LED.setState((byte)1, (byte)1);
-	        
+	        inReceivePeriod = true;
+	        rEnd.setAlarmTime(time + wait);
         }
-        
     }
 
 
