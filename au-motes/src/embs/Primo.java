@@ -266,6 +266,10 @@ public class Primo {
 	 * @return False if all channels have had their periods determined, else True 
 	 */
 	private static boolean switchToSinkWithoutPeriod() {
+		if (periodsFound == 3) {
+			return false;
+		}
+		
 		byte currentChannel = radio.getChannel();
 		byte nextChannel    = currentChannel;
 		
@@ -273,15 +277,12 @@ public class Primo {
 			nextChannel = (byte) (nextChannel == sinkCChannel ? sinkAChannel : nextChannel + 1);
 		} while(nextChannel != currentChannel && sinkPeriod[nextChannel] > 0);
 		
-		if (nextChannel != currentChannel) {
-			switchChannel(nextChannel);
-			resetPeriodDetection();
-			//stopObservingTimer.setAlarmBySpan(maxChannelObserve);
-			
-			return true;
-		}
 		
-		return false;
+		switchChannel(nextChannel);
+		resetPeriodDetection();
+		//stopObservingTimer.setAlarmBySpan(maxChannelObserve);
+		
+		return true;
 	}
 	
 	/**
