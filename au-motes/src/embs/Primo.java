@@ -1,7 +1,5 @@
 package embs;
 
-import java.nio.channels.Pipe.SinkChannel;
-
 import com.ibm.saguaro.logger.Logger;
 import com.ibm.saguaro.system.DevCallback;
 import com.ibm.saguaro.system.Device;
@@ -61,30 +59,23 @@ public class Primo {
 	/**
 	 * The maximum known sequence numbers for all sinks 
 	 */
-	static private int[]  sinkConfirmedMaxNumbers = {0, 0, 0};
+	static private int[]  sinkMaxNumbers = {0, 0, 0};
+
+	static private int[]  sinkCalMinNumber     = {100, 100, 100};
+	static private long[] sinkCalMinNumberTime = new long[3];
+	static private int[]  sinkCalMaxNumber     = {0, 0 , 0};
+	static private long[] sinkCalMaxNumberTime = new long[3];
 	
 	/**
 	 * The maximum amount of time we should spend observing a single channel
 	 */
-	static private long maxChannelObserve = Time.toTickSpan(Time.MILLISECS, 3500);
+	static private long maxChannelObserve = Time.toTickSpan(Time.MILLISECS, 3250);
 
-	/**
-	 * Set of observed sequence numbers across channels. Key is the sequence
-	 * number, the value is the time that the sequence number was received at
-	 */
-	static private long[] broadcastTimes = new long[11];
-
-	/**
-	 * Values for working out the period for the channel currently being observed 
-	 * Used to try and estimate the period of a channel
-	 */
-	static private int maxSequenceNumber = 0;
-	static private int minSequenceNumber = 100;
-	static private int receivedSequenceNumbers = 0;
 	private static boolean radioIsOn;
 	
 	
 	static {
+		LED.setState((byte) 0, (byte) 1); 
 		// Open the default radio
 		radio.open(Radio.DID, null, 0, 0);
 
@@ -142,6 +133,7 @@ public class Primo {
 				Primo.stopObserving(arg0, time);
 			}
 		});
+		stopObservingTimer.setAlarmBySpan(maxChannelObserve);
 	}
 
 	protected static int onReceive(int flags, byte[] data, int len, int wARN,
@@ -151,6 +143,8 @@ public class Primo {
 			return 0;
 		}
 
+		LED.setState((byte) 1, (byte) (LED.getState((byte) 1) == 0 ? 1 : 0));
+		
 		byte currentSink    = (byte) radio.getChannel();
 		int  sequenceNumber = (int) data[11];
 		
@@ -159,24 +153,24 @@ public class Primo {
 		Logger.appendString(csr.s2b(" (CP "));
 		Logger.appendLong(sinkPeriod[currentSink]);
 		Logger.appendString(csr.s2b(" MN "));
-		Logger.appendLong(sinkConfirmedMaxNumbers[currentSink]);
+		Logger.appendLong(sinkMaxNumbers[currentSink]);
 		Logger.appendString(csr.s2b("): "));
 		Logger.appendInt(sequenceNumber);
 		Logger.appendString(csr.s2b(" "));
 		
 		if(sinkPeriod[currentSink] <= 0) {
-			
 			handleCallibration(time, currentSink, sequenceNumber);
 		} else {
 			// Never cross the streams...
-			if(sequenceNumber > sinkConfirmedMaxNumbers[currentSink]) {
-				sinkConfirmedMaxNumbers[currentSink] = sequenceNumber;
+			if(sequenceNumber > sinkMaxNumbers[currentSink]) {
+				sinkMaxNumbers[currentSink] = sequenceNumber;
 			}
 			
 			scheduledBroadcast(time + (sinkPeriod[currentSink] * sequenceNumber));
 		}
 		
-
+		LED.setState((byte) 0, (byte) (periodsFound == 3 ? 0 : 1));
+		
 		Logger.flush(Mote.WARN);
 		
 		return 0;
@@ -185,19 +179,16 @@ public class Primo {
 	
 	protected static void observeMaxForB(byte arg0, long time) {
 		switchChannel(sinkBChannel);
-		resetPeriodDetection();
 	}
 
 
 	protected static void observeMaxForC(byte arg0, long time) {
 		switchChannel(sinkCChannel);
-		resetPeriodDetection();
 	}
 
 
 	protected static void observeMaxForA(byte arg0, long time) {
 		switchChannel(sinkAChannel);
-		resetPeriodDetection();
 	}
 
 
@@ -212,26 +203,38 @@ public class Primo {
 		long estimatedPeriod       = 0;
 		long receivePeriodStartsAt = 0;
 		
-		
-		// n == 1 and we haven't timed out while watching this
-		if(sequenceNumber == 1 && maxSequenceNumber == 1) {
-			long beaconTimeDiff = (time - broadcastTimes[sequenceNumber]);
+		if(sequenceNumber == 1 && sinkCalMaxNumber[currentSink] == 1) {
+			// n == 1
+			long beaconTimeDiff = (time - sinkCalMaxNumberTime[currentSink]);
 			
 			estimatedPeriod = (beaconTimeDiff / 12);
 			receivePeriodStartsAt = time + estimatedPeriod;
 			
-			Logger.appendString(csr.s2b("N=1"));
+			Logger.appendString(csr.s2b("n=1"));
+		
+		} else if (sinkCalMaxNumber[currentSink] < sequenceNumber) {
+			// Either this is the first number we've observed, or we've missed the reception
+			// phase and looped back round to the head of the sequence
+			sinkCalMaxNumber[currentSink]     = sequenceNumber;
+			sinkCalMaxNumberTime[currentSink] = time;
+			sinkCalMinNumber[currentSink]     = 100;
+			sinkCalMinNumberTime[currentSink] = 0;
+			
+			Logger.appendString(csr.s2b("M<s"));
 		} else {
-			maxSequenceNumber = sequenceNumber > maxSequenceNumber ? sequenceNumber : maxSequenceNumber;
-			minSequenceNumber = sequenceNumber < minSequenceNumber ? sequenceNumber : minSequenceNumber;
+			
+			if(sinkCalMaxNumberTime[currentSink] > 0) {
+				sinkCalMinNumberTime[currentSink] = time;
+				sinkCalMinNumber[currentSink]     = sequenceNumber;
+			} else {
+				sinkCalMaxNumberTime[currentSink] = time;
+				sinkCalMaxNumber[currentSink]     = sequenceNumber;
+			}
 
-			broadcastTimes[sequenceNumber] = time;
-			++receivedSequenceNumbers;
-
-			estimatedPeriod = estimatePeriodFromSequence();
+			estimatedPeriod = estimatePeriodFromSequence(currentSink);
 			
 			if(estimatedPeriod > 0) {
-				receivePeriodStartsAt = broadcastTimes[minSequenceNumber] + (estimatedPeriod *  minSequenceNumber);
+				receivePeriodStartsAt = sinkCalMinNumberTime[currentSink] + (estimatedPeriod *  sinkCalMinNumber[currentSink]);
 			}
 			
 			Logger.appendString(csr.s2b("   "));
@@ -239,7 +242,9 @@ public class Primo {
 		
 
 		sinkPeriod[currentSink] = estimatedPeriod;
-		sinkConfirmedMaxNumbers[currentSink] = maxSequenceNumber;
+		
+		if(sinkCalMaxNumber[currentSink] > sinkMaxNumbers[currentSink])
+			sinkMaxNumbers[currentSink] = sinkCalMaxNumber[currentSink];
 		
 		Logger.appendString(csr.s2b(" Period: "));
 		Logger.appendLong(estimatedPeriod);
@@ -279,8 +284,7 @@ public class Primo {
 		
 		
 		switchChannel(nextChannel);
-		resetPeriodDetection();
-		//stopObservingTimer.setAlarmBySpan(maxChannelObserve);
+		stopObservingTimer.setAlarmBySpan(maxChannelObserve);
 		
 		return true;
 	}
@@ -291,14 +295,10 @@ public class Primo {
 	 * @param time
 	 */
 	protected static void stopObserving(byte arg0, long time) {
+		Logger.appendString(csr.s2b("Time to stop observing channel "));
+		Logger.appendByte(radio.getChannel());
+		Logger.flush(Mote.WARN);
 		switchToSinkWithoutPeriod();
-	}
-
-	private static void resetPeriodDetection() {
-		maxSequenceNumber = 0;
-		minSequenceNumber = 100;
-		receivedSequenceNumbers = 0;
-		broadcastTimes = new long[11];
 	}
 
 	protected static void broadcastToC(byte arg0, long time) {
@@ -335,7 +335,7 @@ public class Primo {
 		Logger.flush(Mote.WARN);
 		
 		radio.transmit(Device.ASAP|Radio.TXMODE_POWER_MAX, xmit, 0, 12, 0);
-		
+		LED.setState((byte) 2, (byte) (LED.getState((byte) 2) == 0 ? 1 : 0)); 
 		switchChannel(originalChannel);
 	}
 	
@@ -343,7 +343,7 @@ public class Primo {
 		long period = sinkPeriod[channel];
 		
 		long startSequenceTime    = receiveTime + (11 * period);
-		long nextReceptionPeriod  = startSequenceTime + (sinkConfirmedMaxNumbers[channel] * period);
+		long nextReceptionPeriod  = startSequenceTime + (sinkMaxNumbers[channel] * period);
 		long broadcastObserveTime = (nextReceptionPeriod - period - (period / 3));
 		
 		Logger.appendString(csr.s2b("Rescheduling channel "));
@@ -353,9 +353,14 @@ public class Primo {
 		Logger.appendString(csr.s2b("("));
 		Logger.appendLong(Time.fromTickSpan(Time.MILLISECS, nextReceptionPeriod));
 		Logger.appendString(csr.s2b(") estimated max sequence#: "));
-		Logger.appendInt(sinkConfirmedMaxNumbers[channel]);
+		Logger.appendInt(sinkMaxNumbers[channel]);
 		Logger.appendString(csr.s2b("*"));
 		Logger.appendLong(Time.fromTickSpan(Time.MILLISECS, sinkPeriod[channel]));
+		Logger.appendString(csr.s2b(" observe at "));
+		Logger.appendLong(broadcastObserveTime);
+		Logger.appendString(csr.s2b("("));
+		Logger.appendLong(Time.fromTickSpan(Time.MILLISECS, broadcastObserveTime));
+		Logger.appendString(csr.s2b(")"));
 		Logger.flush(Mote.WARN);
 		
 		switch(channel) {
@@ -414,18 +419,23 @@ public class Primo {
 	 * Estimates the start of the receive period based on the observed payloads
 	 * @return
 	 */
-	static private long estimatePeriodFromSequence() {
-		if (receivedSequenceNumbers < 2) {
+	static private long estimatePeriodFromSequence(byte sink) {		
+		if (sinkCalMinNumber[sink] == 0 || sinkCalMaxNumber[sink] == 0) {
 			return 0;
 		}
 		
-		long totalTicks = 0;
-		
-		for(int i = maxSequenceNumber - 1; i >= minSequenceNumber; --i) {
-			totalTicks += broadcastTimes[i] - broadcastTimes[i + 1];
+		long tickDiff = sinkCalMinNumberTime[sink] - sinkCalMaxNumberTime[sink];
+		long seqDiff  = sinkCalMaxNumber[sink]     - sinkCalMinNumber[sink];
+
+		// If we've managed to jump to another cycle, take the reception + sleep phase into account
+		if(seqDiff < 1) {
+			Logger.appendString(csr.s2b("SOMETHING HAS GONE TERRIBLY WRONG"));
+			Logger.flush(Mote.WARN);
+			
+			return 0;
 		}
-		
-		return totalTicks / (receivedSequenceNumbers - 1);
+
+		return tickDiff / seqDiff;
 	}
 
 	/**

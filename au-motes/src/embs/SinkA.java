@@ -15,6 +15,9 @@ public class SinkA {
     private static int n = 6; // number of beacons of sync phase - sample only, assessment will use unknown values
     private static int nc;
     
+    private static long receptionStart;
+    private static long receptionEnd;
+    
     private static int t = 800; // milliseconds between beacons - sample only, assessment will use unknown values 
     
     // settings for sink A
