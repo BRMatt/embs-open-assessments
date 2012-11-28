@@ -12,10 +12,10 @@ public class SinkA {
     private static byte[] xmit;
     private static long   wait;
     static Radio radio = new Radio();
-    private static int n = 1; // number of beacons of sync phase - sample only, assessment will use unknown values
+    private static int n = 6; // number of beacons of sync phase - sample only, assessment will use unknown values
     private static int nc;
     
-    private static int t = 500; // milliseconds between beacons - sample only, assessment will use unknown values 
+    private static int t = 800; // milliseconds between beacons - sample only, assessment will use unknown values 
     
     // settings for sink A
     private static byte channel = 0; // channel 11

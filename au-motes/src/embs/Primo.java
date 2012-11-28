@@ -50,7 +50,7 @@ public class Primo {
 	/**
 	 * A collection of all the periods we have estimated
 	 */
-	static private long[] sinkPeriod    = new long[3];
+	static private long[] sinkPeriod    =  {0, 0, 0};
 	
 	/**
 	 * The number of periods we've discovered
@@ -61,7 +61,7 @@ public class Primo {
 	/**
 	 * The maximum known sequence numbers for all sinks 
 	 */
-	static private int[]  sinkConfirmedMaxNumbers = new int[3];
+	static private int[]  sinkConfirmedMaxNumbers = {0, 0, 0};
 	
 	/**
 	 * The maximum amount of time we should spend observing a single channel
@@ -81,20 +81,21 @@ public class Primo {
 	static private int maxSequenceNumber = 0;
 	static private int minSequenceNumber = 100;
 	static private int receivedSequenceNumbers = 0;
+	private static boolean radioIsOn;
 	
 	
 	static {
 		// Open the default radio
 		radio.open(Radio.DID, null, 0, 0);
 
-		// This value controls filtering of incomming frames. 
+		// This value controls filtering of incoming frames. 
 		// The broadcast value makes the radio stack accept all frames matching the 
 		// PAN address no matter what the value of the mote short address in the radio frame.
 		// This call can only be performed if the radio API is in state SLEEP or ACTIVE.
 		radio.setShortAddr(Radio.SADDR_BROADCAST);
 
 		// Set channel
-		switchChannel(sinkAChannel);
+		switchChannel(sinkAChannel, false);
 
 		// register delegate for received frames
 		radio.setRxHandler(new DevCallback(null) {
@@ -155,9 +156,16 @@ public class Primo {
 		
 		Logger.appendString(csr.s2b("Channel "));
 		Logger.appendByte(radio.getChannel());
-		Logger.appendString(csr.s2b(": "));
+		Logger.appendString(csr.s2b(" (CP "));
+		Logger.appendLong(sinkPeriod[currentSink]);
+		Logger.appendString(csr.s2b(" MN "));
+		Logger.appendLong(sinkConfirmedMaxNumbers[currentSink]);
+		Logger.appendString(csr.s2b("): "));
+		Logger.appendInt(sequenceNumber);
+		Logger.appendString(csr.s2b(" "));
 		
 		if(sinkPeriod[currentSink] <= 0) {
+			
 			handleCallibration(time, currentSink, sequenceNumber);
 		} else {
 			// Never cross the streams...
@@ -203,9 +211,6 @@ public class Primo {
 	private static void handleCallibration(long time, byte currentSink, int sequenceNumber) {
 		long estimatedPeriod       = 0;
 		long receivePeriodStartsAt = 0;
-		
-		Logger.appendInt(sequenceNumber);
-		Logger.appendString(csr.s2b(" "));
 		
 		
 		// n == 1 and we haven't timed out while watching this
@@ -436,10 +441,10 @@ public class Primo {
 	 * @param channel
 	 * @param stopStartRadio
 	 */
-	static private void switchChannel(byte channel, boolean stopStartRadio) {
+	static private void switchChannel(byte channel, boolean stopRadio) {
 		byte currentChannel = radio.getChannel();
 		
-		if (currentChannel == channel) {
+		if (currentChannel == channel && radioIsOn) {
 			Logger.appendString(csr.s2b("Already on channel "));
 			Logger.appendByte(channel);
 			Logger.appendString(csr.s2b(" No need to switch back"));
@@ -451,21 +456,31 @@ public class Primo {
 		Logger.appendByte(currentChannel);
 		Logger.appendString(csr.s2b(" to "));
 		Logger.appendByte(channel);
+		Logger.appendString(csr.s2b(" -- "));
+		Logger.appendInt(radio.getState());
 		Logger.flush(Mote.WARN);
 		
 		LED.setState(currentChannel, (byte) 0x0);
 		LED.setState(channel, (byte) 1);
 		
-		if(stopStartRadio) {
-			radio.stopRx();
+		if(stopRadio) {
+			radioOff();
 		}
 		
 		radio.setChannel(channel);
 		
 		radio.setPanId((0x11 + channel), false);
 		
-		if(stopStartRadio) {
-			radio.startRx(Device.ASAP, 0, Time.currentTicks() + 0x7FFFFFFF);
-		}
+		radioOn();
+	}
+	
+	static private void radioOn() {
+		radio.startRx(Device.ASAP, 0, Time.currentTicks() + 0x7FFFFFFF);
+		radioIsOn = true;
+	}
+	
+	static private void radioOff() {
+		radio.stopRx();
+		radioIsOn = false;
 	}
 }
