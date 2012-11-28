@@ -53,6 +53,12 @@ public class Primo {
 	static private long[] sinkPeriod    = new long[3];
 	
 	/**
+	 * The number of periods we've discovered
+	 * Used to determine if the radio can be put into sleep mode
+	 */
+	static private int periodsFound = 0;
+	
+	/**
 	 * The maximum known sequence numbers for all sinks 
 	 */
 	static private int[]  sinkConfirmedMaxNumbers = new int[3];
@@ -88,7 +94,7 @@ public class Primo {
 		radio.setShortAddr(Radio.SADDR_BROADCAST);
 
 		// Set channel
-		switchChannel(sinkAChannel, false);
+		switchChannel(sinkAChannel);
 
 		// register delegate for received frames
 		radio.setRxHandler(new DevCallback(null) {
@@ -135,8 +141,6 @@ public class Primo {
 				Primo.stopObserving(arg0, time);
 			}
 		});
-		
-		radio.startRx(Device.ASAP, 0, Time.currentTicks() + 0x7FFFFFFF);
 	}
 
 	protected static int onReceive(int flags, byte[] data, int len, int wARN,
@@ -242,7 +246,8 @@ public class Primo {
 			Logger.appendString(csr.s2b(" // Scheduled at: "));
 			Logger.appendLong(Time.fromTickSpan(Time.MILLISECS, receivePeriodStartsAt));
 			Logger.flush(Mote.WARN);
-			observeNextChannel();
+			++periodsFound;
+			switchToSinkWithoutPeriod();
 		}
 	}
 	
@@ -255,7 +260,7 @@ public class Primo {
 	 * 
 	 * @return False if all channels have had their periods determined, else True 
 	 */
-	private static boolean observeNextChannel() {
+	private static boolean switchToSinkWithoutPeriod() {
 		byte currentChannel = radio.getChannel();
 		byte nextChannel    = currentChannel;
 		
@@ -280,7 +285,7 @@ public class Primo {
 	 * @param time
 	 */
 	protected static void stopObserving(byte arg0, long time) {
-		observeNextChannel();
+		switchToSinkWithoutPeriod();
 	}
 
 	private static void resetPeriodDetection() {
@@ -360,6 +365,17 @@ public class Primo {
 			sinkCMaxObserverTimer.setAlarmTime(broadcastObserveTime);
 			sinkCBroadcastTimer.setAlarmTime(nextReceptionPeriod);
 		}
+		
+		// We've discovered everything we need to know, don't need to "observe" channels
+		// until prompted to by timers
+		/*if(periodsFound >= 3) {
+			Logger.appendString(csr.s2b("Stopping radio"));
+			Logger.flush(Mote.WARN);
+			LED.setState((byte) sinkAChannel, (byte) 0x0);
+			LED.setState((byte) sinkBChannel, (byte) 0x0);
+			LED.setState((byte) sinkCChannel, (byte) 0x0);
+			radio.setState(Radio.S_STDBY);
+		}*/
 	}
 
 	/**
