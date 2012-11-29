@@ -471,8 +471,6 @@ public class Primo {
 		Logger.appendInt(radio.getState());
 		Logger.flush(Mote.WARN);
 		
-		LED.setState(currentChannel, (byte) 0x0);
-		LED.setState(channel, (byte) 1);
 		
 		if(stopRadio) {
 			radioOff();
