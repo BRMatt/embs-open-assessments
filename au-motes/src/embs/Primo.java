@@ -59,7 +59,11 @@ public class Primo {
 	/**
 	 * The maximum known sequence numbers for all sinks 
 	 */
-	static private int[]  sinkMaxNumbers = {0, 0, 0};
+	static private int[] sinkMaxNumbers = {0, 0, 0};
+	/**
+	 * By default try to transmit at maximum power
+	 */
+	static private int[] sinkPowers = {Radio.TXMODE_POWER_MAX, Radio.TXMODE_POWER_MAX, Radio.TXMODE_POWER_MAX};
 
 	static private int[]  sinkCalMinNumber     = {100, 100, 100};
 	static private long[] sinkCalMinNumberTime = new long[3];
@@ -90,9 +94,9 @@ public class Primo {
 
 		// register delegate for received frames
 		radio.setRxHandler(new DevCallback(null) {
-			public int invoke(int flags, byte[] data, int len, int WARN,
+			public int invoke(int flags, byte[] data, int len, int info,
 					long time) {
-				return Primo.onReceive(flags, data, len, WARN, time);
+				return Primo.onReceive(flags, data, len, info, time);
 			}
 		});
 
@@ -136,7 +140,7 @@ public class Primo {
 		stopObservingTimer.setAlarmBySpan(maxChannelObserve);
 	}
 
-	protected static int onReceive(int flags, byte[] data, int len, int wARN,
+	protected static int onReceive(int flags, byte[] data, int len, int info,
 			long time) {
 		if (data == null) {
 			// We explicitly control when we enable the radio using timers etc.
@@ -147,6 +151,7 @@ public class Primo {
 		
 		byte currentSink    = (byte) radio.getChannel();
 		int  sequenceNumber = (int) data[11];
+		int  newPowerLevel  = (int)  (((64*(info & 0xFF)/255))<<9) & Radio.TXMODE_POWER_MASK;
 		
 		Logger.appendString(csr.s2b("Channel "));
 		Logger.appendByte(radio.getChannel());
@@ -172,6 +177,14 @@ public class Primo {
 		LED.setState((byte) 0, (byte) (periodsFound == 3 ? 0 : 1));
 		
 		Logger.flush(Mote.WARN);
+		Logger.appendString(csr.s2b("Changing power for chanel "));
+		Logger.appendByte(currentSink);
+		Logger.appendString(csr.s2b(" to "));
+		Logger.appendInt(newPowerLevel);
+		Logger.appendString(csr.s2b(" from "));
+		Logger.appendInt(sinkPowers[currentSink]);
+		Logger.flush(Mote.WARN);
+		sinkPowers[currentSink] = newPowerLevel;
 		
 		return 0;
 	}
@@ -334,7 +347,7 @@ public class Primo {
 		Logger.appendByte(broadcastChannel);
 		Logger.flush(Mote.WARN);
 		
-		radio.transmit(Device.ASAP|Radio.TXMODE_POWER_MAX, xmit, 0, 12, 0);
+		radio.transmit(Device.ASAP|sinkPowers[broadcastChannel], xmit, 0, 12, 0);
 		LED.setState((byte) 2, (byte) (LED.getState((byte) 2) == 0 ? 1 : 0)); 
 		switchChannel(originalChannel);
 	}
@@ -479,6 +492,7 @@ public class Primo {
 		radio.setChannel(channel);
 		
 		radio.setPanId((0x11 + channel), false);
+
 		
 		radioOn();
 	}
