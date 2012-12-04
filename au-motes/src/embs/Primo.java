@@ -74,6 +74,11 @@ public class Primo {
 	 * The maximum amount of time we should spend observing a single channel
 	 */
 	static private long maxChannelObserve = Time.toTickSpan(Time.MILLISECS, 3250);
+	
+	/**
+	 * An arbitrary offset into the reception period that we should try to transmit at
+	 */
+	static private long receptionPeriodFudgeFactor = Time.toTickSpan(Time.MILLISECS, 150);
 
 	private static boolean radioIsOn;
 	
@@ -220,8 +225,10 @@ public class Primo {
 			// n == 1
 			long beaconTimeDiff = (time - sinkCalMaxNumberTime[currentSink]);
 			
+			sinkCalMinNumber[currentSink] = 1;
+			sinkCalMinNumberTime[currentSink] = time;
+			
 			estimatedPeriod = (beaconTimeDiff / 12);
-			receivePeriodStartsAt = time + estimatedPeriod;
 			
 			Logger.appendString(csr.s2b("n=1"));
 		
@@ -246,18 +253,19 @@ public class Primo {
 
 			estimatedPeriod = estimatePeriodFromSequence(currentSink);
 			
-			if(estimatedPeriod > 0) {
-				receivePeriodStartsAt = sinkCalMinNumberTime[currentSink] + (estimatedPeriod *  sinkCalMinNumber[currentSink]);
-			}
-			
 			Logger.appendString(csr.s2b("   "));
 		}
 		
 
 		sinkPeriod[currentSink] = estimatedPeriod;
 		
-		if(sinkCalMaxNumber[currentSink] > sinkMaxNumbers[currentSink])
+		if(sinkCalMaxNumber[currentSink] > sinkMaxNumbers[currentSink]) {
 			sinkMaxNumbers[currentSink] = sinkCalMaxNumber[currentSink];
+		}
+		
+		if(estimatedPeriod > 0) {
+			receivePeriodStartsAt = calculateBroadcastTime(time, estimatedPeriod, sinkCalMinNumber[currentSink]);
+		}
 		
 		Logger.appendString(csr.s2b(" Period: "));
 		Logger.appendLong(estimatedPeriod);
@@ -272,6 +280,21 @@ public class Primo {
 			++periodsFound;
 			switchToSinkWithoutPeriod();
 		}
+	}
+	
+	/**
+	 * Calculates the time that we should broadcast
+	 * @param baseTime
+	 * @param periodLength TODO
+	 * @param periodsUntilReception
+	 * @return
+	 */
+	private static long calculateBroadcastTime(long baseTime, long periodLength, int periodsUntilReception) {
+		if (periodLength <= 0) {
+			return 0;
+		}
+		
+		return baseTime + (periodLength * periodsUntilReception);
 	}
 	
 	/**
