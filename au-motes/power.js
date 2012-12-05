@@ -41,7 +41,7 @@ var TestPower = {
 		   mote, trace[i].time, trace[i].current, trace[i].reason);
 
             // write the data to a file ready for plotting ...
-            OSFile.fwrite(this.fileHandle, sprintf("%d %d\n", trace[i].time, trace[i].current));
+            OSFile.fwrite(this.fileHandle, sprintf("%d %d \"%s\"\n", trace[i].time, trace[i].current, trace[i].reason));
         }
 
         printf("Appending data to %s ... \n", this.fileName);

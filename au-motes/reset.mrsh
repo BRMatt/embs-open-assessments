@@ -11,5 +11,5 @@ mote-create
 mote-create
 3 moma-load logger
 3 moma-load PRIMO
-saguaro-cmd 3 trace-current --size 32 on
+saguaro-cmd 3 trace-current --size 32 --rate 100 on
 source power.js
