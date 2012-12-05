@@ -294,7 +294,7 @@ public class Primo {
 			return 0;
 		}
 		
-		return baseTime + (periodLength * periodsUntilReception);
+		return baseTime + (periodLength * periodsUntilReception) + receptionPeriodFudgeFactor;
 	}
 	
 	/**
@@ -380,7 +380,7 @@ public class Primo {
 		
 		long startSequenceTime    = receiveTime + (11 * period);
 		long nextReceptionPeriod  = startSequenceTime + (sinkMaxNumbers[channel] * period);
-		long broadcastObserveTime = (nextReceptionPeriod - period - (period / 3));
+		long broadcastObserveTime = (nextReceptionPeriod - period - (2 * receptionPeriodFudgeFactor));
 		
 		Logger.appendString(csr.s2b("Rescheduling channel "));
 		Logger.appendByte(channel);
