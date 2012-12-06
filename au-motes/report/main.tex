@@ -32,11 +32,9 @@ for up to 35s -- over half the time of the entire simulation -- before it analys
 
 \begin{figure}[h]
 \includegraphics[trim=1cm 22cm 1cm 1cm]{embs-blocking}
-\caption{Blocking stuff}
+\caption{Without a timeout the source can block for too long and miss (times not to scale)}
 \label{fig:long-blocking}
 \end{figure}
-
-
 
 To get around this I added a timeout that restricts the amount of time the source can spend trying to analyse a specific
 channel when there are other periods that need estimating.
@@ -102,9 +100,7 @@ Mote runner's dashboard, console and power-tracing tools were used to verify my 
 \end{figure}
 \noindent\begin{figure}
 \centerline{\includegraphics[scale=0.5]{verification-timeline}}
-\caption{Timeline view\
-The first three rows are sinks, the third is the source
-}
+\caption{Rows 1-3 are sinks, 4th is the source}
 \label{fig:verification-dashboard}
 \end{figure}
 

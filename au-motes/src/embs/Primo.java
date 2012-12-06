@@ -76,6 +76,12 @@ public class Primo {
 	static private long maxChannelObserve = Time.toTickSpan(Time.MILLISECS, 3250);
 	
 	/**
+	 * The maximum length of a period
+	 * Slightly larger than the spec to account for clock drift
+	 */
+	static private long maxPeriodLength = Time.toTickSpan(Time.MILLISECS, 1600);
+	
+	/**
 	 * An arbitrary offset into the reception period that we should try to transmit at
 	 */
 	static private final long receptionPeriodFudgeFactor = Time.toTickSpan(Time.MILLISECS, 200);
@@ -265,11 +271,22 @@ public class Primo {
 		sinkPeriod[currentSink] = estimatedPeriod;
 		
 		if(sinkCalMaxNumber[currentSink] > sinkMaxNumbers[currentSink]) {
-			sinkMaxNumbers[currentSink] = sinkCalMaxNumber[currentSink];
+			sinkMaxNumbers[currentSink]  = sinkCalMaxNumber[currentSink];
 		}
 		
 		if(estimatedPeriod > 0) {
-			receivePeriodStartsAt = calculateBroadcastTime(time, estimatedPeriod, sinkCalMinNumber[currentSink]);
+			
+			if (estimatedPeriod < maxPeriodLength) {
+				receivePeriodStartsAt = calculateBroadcastTime(time, estimatedPeriod, sinkCalMinNumber[currentSink]);
+			} else {
+				// We *think* we've got a valid period, but it's larger than our protocol allows
+				// As we were able to estimate a period the most recent number/time are in max number
+				sinkCalMaxNumber[currentSink] = sinkCalMinNumber[currentSink];
+				sinkCalMaxNumberTime[currentSink] = sinkCalMinNumberTime[currentSink];
+				sinkCalMinNumber[currentSink] = 100;
+				sinkCalMinNumberTime[currentSink] = 0;
+			}
+			
 		}
 		
 		/*Logger.appendString(csr.s2b(" Period: "));
@@ -375,7 +392,7 @@ public class Primo {
 		Logger.appendByte(broadcastChannel);
 		Logger.flush(Mote.WARN);
 		
-		radio.transmit(Device.ASAP|sinkPowers[broadcastChannel], xmit, 0, 12, 0);
+		radio.transmit(Device.ASAP|Radio.TXMODE_POWER_MAX/*sinkPowers[broadcastChannel]*/, xmit, 0, 12, 0);
 		LED.setState((byte) 2, (byte) (LED.getState((byte) 2) == 0 ? 1 : 0)); 
 		switchChannel(originalChannel);
 	}

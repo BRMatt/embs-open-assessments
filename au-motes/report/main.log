@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.4-1.40.13 (MiKTeX 2.9 64-bit) (preloaded format=pdflatex 2012.12.6)  6 DEC 2012 15:14
+This is pdfTeX, Version 3.1415926-2.4-1.40.13 (MiKTeX 2.9 64-bit) (preloaded format=pdflatex 2012.12.6)  6 DEC 2012 16:05
 entering extended mode
 **H:/eclipse-workspace/embs-open-assessments/au-motes/report/main.tex
 (H:/eclipse-workspace/embs-open-assessments/au-motes/report/main.tex
@@ -718,7 +718,7 @@ LaTeX Warning: `h' float specifier changed to `ht'.
 
 {C:/Users/mb798/AppData/Local/MiKTeX/2.9/pdftex/config/pdftex.map}] [2 <H:/ecli
 pse-workspace/embs-open-assessments/au-motes/report/embs-blocking.pdf>]
-Underfull \hbox (badness 10000) in paragraph at lines 92--93
+Underfull \hbox (badness 10000) in paragraph at lines 90--91
 
  []
 
@@ -726,14 +726,14 @@ Underfull \hbox (badness 10000) in paragraph at lines 92--93
 File: verification-dashboard.png Graphic file (type png)
 
 <use verification-dashboard.png>
-Package pdftex.def Info: verification-dashboard.png used on input line 99.
+Package pdftex.def Info: verification-dashboard.png used on input line 97.
 (pdftex.def)             Requested size: 450.18077pt x 244.66345pt.
 
 <verification-timeline.png, id=177, 1032.10594pt x 621.07031pt>
 File: verification-timeline.png Graphic file (type png)
 
 <use verification-timeline.png>
-Package pdftex.def Info: verification-timeline.png used on input line 104.
+Package pdftex.def Info: verification-timeline.png used on input line 102.
 (pdftex.def)             Requested size: 516.05171pt x 310.5344pt.
  [3] [4 <H:/eclipse-workspace/embs-open-assessments/au-motes/report/verificatio
 n-dashboard.png>] [5 <H:/eclipse-workspace/embs-open-assessments/au-motes/repor
@@ -761,7 +761,7 @@ msfonts/cm/cmr17.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/c
 m/cmr7.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmsy10.p
 fb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmsy7.pfb><C:/Pr
 ogram Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmti10.pfb>
-Output written on main.pdf (5 pages, 744214 bytes).
+Output written on main.pdf (5 pages, 744061 bytes).
 PDF statistics:
  224 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
