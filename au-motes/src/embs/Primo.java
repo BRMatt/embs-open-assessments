@@ -78,7 +78,8 @@ public class Primo {
 	/**
 	 * An arbitrary offset into the reception period that we should try to transmit at
 	 */
-	static private long receptionPeriodFudgeFactor = Time.toTickSpan(Time.MILLISECS, 150);
+	static private final long receptionPeriodFudgeFactor = Time.toTickSpan(Time.MILLISECS, 200);
+	static private final long broadcastTimeFudgeFactor = receptionPeriodFudgeFactor + Time.toTickSpan(Time.MILLISECS, 100);
 
 	private static boolean radioIsOn;
 	
@@ -162,7 +163,7 @@ public class Primo {
 		// Transmit power = RSSI * 2^-8 * 2^6 * 2^10 = RSSI * 2^8
 		int  newPowerLevel  = (int) ((info & 0xFF) << 7) & Radio.TXMODE_POWER_MASK;
 		
-		Logger.appendString(csr.s2b("Channel "));
+		/*Logger.appendString(csr.s2b("Channel "));
 		Logger.appendByte(radio.getChannel());
 		Logger.appendString(csr.s2b(" (CP "));
 		Logger.appendLong(sinkPeriod[currentSink]);
@@ -170,7 +171,7 @@ public class Primo {
 		Logger.appendLong(sinkMaxNumbers[currentSink]);
 		Logger.appendString(csr.s2b("): "));
 		Logger.appendInt(sequenceNumber);
-		Logger.appendString(csr.s2b(" "));
+		Logger.appendString(csr.s2b(" "));*/
 		
 		if(sinkPeriod[currentSink] <= 0) {
 			handleCallibration(time, currentSink, sequenceNumber);
@@ -180,19 +181,19 @@ public class Primo {
 				sinkMaxNumbers[currentSink] = sequenceNumber;
 			}
 			
-			scheduledBroadcast(time + (sinkPeriod[currentSink] * sequenceNumber));
+			scheduledBroadcast(time + (sinkPeriod[currentSink] * sequenceNumber) + receptionPeriodFudgeFactor);
 		}
 		
 		LED.setState((byte) 0, (byte) (periodsFound == 3 ? 0 : 1));
 		
-		Logger.flush(Mote.WARN);
+		/*Logger.flush(Mote.WARN);
 		Logger.appendString(csr.s2b("Changing power for chanel "));
 		Logger.appendByte(currentSink);
 		Logger.appendString(csr.s2b(" to "));
 		Logger.appendInt(newPowerLevel);
 		Logger.appendString(csr.s2b(" from "));
 		Logger.appendInt(sinkPowers[currentSink]);
-		Logger.flush(Mote.WARN);
+		Logger.flush(Mote.WARN);*/
 		sinkPowers[currentSink] = newPowerLevel;
 		
 		return 0;
@@ -271,16 +272,16 @@ public class Primo {
 			receivePeriodStartsAt = calculateBroadcastTime(time, estimatedPeriod, sinkCalMinNumber[currentSink]);
 		}
 		
-		Logger.appendString(csr.s2b(" Period: "));
+		/*Logger.appendString(csr.s2b(" Period: "));
 		Logger.appendLong(estimatedPeriod);
 		Logger.appendString(csr.s2b("("));
 		Logger.appendLong(Time.fromTickSpan(Time.MILLISECS, estimatedPeriod));
-		Logger.appendString(csr.s2b(") "));
+		Logger.appendString(csr.s2b(") "));*/
 		
 		if(scheduledBroadcast(receivePeriodStartsAt)) {
-			Logger.appendString(csr.s2b(" // Scheduled at: "));
+			/*Logger.appendString(csr.s2b(" // Scheduled at: "));
 			Logger.appendLong(Time.fromTickSpan(Time.MILLISECS, receivePeriodStartsAt));
-			Logger.flush(Mote.WARN);
+			Logger.flush(Mote.WARN);*/
 			++periodsFound;
 			switchToSinkWithoutPeriod();
 		}
@@ -335,9 +336,9 @@ public class Primo {
 	 * @param time
 	 */
 	protected static void stopObserving(byte arg0, long time) {
-		Logger.appendString(csr.s2b("Time to stop observing channel "));
+		/*Logger.appendString(csr.s2b("Time to stop observing channel "));
 		Logger.appendByte(radio.getChannel());
-		Logger.flush(Mote.WARN);
+		Logger.flush(Mote.WARN);*/
 		switchToSinkWithoutPeriod();
 	}
 
@@ -384,9 +385,9 @@ public class Primo {
 		
 		long startSequenceTime    = receiveTime + (11 * period);
 		long nextReceptionPeriod  = startSequenceTime + (sinkMaxNumbers[channel] * period);
-		long broadcastObserveTime = (nextReceptionPeriod - period - (2 * receptionPeriodFudgeFactor));
+		long broadcastObserveTime = (nextReceptionPeriod - period - broadcastTimeFudgeFactor);
 		
-		Logger.appendString(csr.s2b("Rescheduling channel "));
+		/*Logger.appendString(csr.s2b("Rescheduling channel "));
 		Logger.appendByte(channel);
 		Logger.appendString(csr.s2b(" broadcast for "));
 		Logger.appendLong(nextReceptionPeriod);
@@ -401,7 +402,7 @@ public class Primo {
 		Logger.appendString(csr.s2b("("));
 		Logger.appendLong(Time.fromTickSpan(Time.MILLISECS, broadcastObserveTime));
 		Logger.appendString(csr.s2b(")"));
-		Logger.flush(Mote.WARN);
+		Logger.flush(Mote.WARN);*/
 		
 		switch(channel) {
 		case sinkAChannel:
@@ -469,8 +470,8 @@ public class Primo {
 
 		// If we've managed to jump to another cycle, take the reception + sleep phase into account
 		if(seqDiff < 1) {
-			Logger.appendString(csr.s2b("SOMETHING HAS GONE TERRIBLY WRONG"));
-			Logger.flush(Mote.WARN);
+			/*Logger.appendString(csr.s2b("SOMETHING HAS GONE TERRIBLY WRONG"));
+			Logger.flush(Mote.WARN);*/
 			
 			return 0;
 		}
@@ -496,20 +497,20 @@ public class Primo {
 		byte currentChannel = radio.getChannel();
 		
 		if (currentChannel == channel && radioIsOn) {
-			Logger.appendString(csr.s2b("Already on channel "));
+			/*Logger.appendString(csr.s2b("Already on channel "));
 			Logger.appendByte(channel);
 			Logger.appendString(csr.s2b(" No need to switch back"));
-			Logger.flush(Mote.WARN);
+			Logger.flush(Mote.WARN);*/
 			return;
 		}
 		
-		Logger.appendString(csr.s2b("Switching from channel "));
+		/*Logger.appendString(csr.s2b("Switching from channel "));
 		Logger.appendByte(currentChannel);
 		Logger.appendString(csr.s2b(" to "));
 		Logger.appendByte(channel);
 		Logger.appendString(csr.s2b(" -- "));
 		Logger.appendInt(radio.getState());
-		Logger.flush(Mote.WARN);
+		Logger.flush(Mote.WARN);*/
 		
 		
 		if(stopRadio) {
