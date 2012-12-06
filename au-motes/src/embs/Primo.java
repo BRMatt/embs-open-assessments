@@ -156,7 +156,11 @@ public class Primo {
 		
 		byte currentSink    = (byte) radio.getChannel();
 		int  sequenceNumber = (int) data[11];
-		int  newPowerLevel  = (int)  (((64*(info & 0xFF)/255))<<9) & Radio.TXMODE_POWER_MASK;
+		// RSSI is on a scale of 0-255, transmit power is on a scale of 0-63
+		// We divide by 256 (*2^-8), then multiply by 64 (2^6) to get the transmit power
+		// Then we bit shift it up into the correct position (The top 6 bits)
+		// Transmit power = RSSI * 2^-8 * 2^6 * 2^10 = RSSI * 2^8
+		int  newPowerLevel  = (int) ((info & 0xFF) << 7) & Radio.TXMODE_POWER_MASK;
 		
 		Logger.appendString(csr.s2b("Channel "));
 		Logger.appendByte(radio.getChannel());
