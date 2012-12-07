@@ -14,7 +14,7 @@ public class SinkB {
 	private static byte[] xmit;
 	private static long wait;
 	static Radio radio = new Radio();
-	private static int n = 8; // number of beacons of sync phase - sample only,
+	private static int n = 1; // number of beacons of sync phase - sample only,
 								// assessment will use unknown values
 	private static int nc;
 
@@ -108,9 +108,9 @@ public class SinkB {
 		LED.setState(led, (byte) (LED.getState(led) == 0 ? 1 : 0));
 
 		if (inReceivePeriod) {
-			Logger.appendString(csr.s2b("In Reception: "));
+			Logger.appendString(csr.s2b("SinkB.: In Reception: "));
 		} else {
-			Logger.appendString(csr.s2b("NOT In Reception: "));
+			Logger.appendString(csr.s2b("SinkB.: NOT In Reception: "));
 		}
 
 		Logger.appendByte(data[11]);

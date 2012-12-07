@@ -108,9 +108,9 @@ public class Sink {
 		LED.setState(led, (byte) (LED.getState(led) == 0 ? 1 : 0));
 
 		if (inReceivePeriod) {
-			Logger.appendString(csr.s2b("In Reception: "));
+			Logger.appendString(csr.s2b("Sink.: In Reception: "));
 		} else {
-			Logger.appendString(csr.s2b("NOT In Reception: "));
+			Logger.appendString(csr.s2b("Sink.: NOT In Reception: "));
 		}
 
 		Logger.appendByte(data[11]);

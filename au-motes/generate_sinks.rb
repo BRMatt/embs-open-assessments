@@ -78,5 +78,5 @@ sinks.each do |a|
 	
 	
 	IO.write("src/embs/Sink#{motes[a[:id]]}.java", newfile)
-	system "cd src && mrc --verbose --assembly=sink#{a[:id]}-1.0 embs/Sink#{motes[a[:id]]}.java -r:logger-9.0"
+	system "cd src && mrc --verbose --assembly=SINK#{motes[a[:id]]}-1.0 embs/Sink#{motes[a[:id]]}.java -r:logger-9.0"
 end
