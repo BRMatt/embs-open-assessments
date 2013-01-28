@@ -1,7 +1,7 @@
 <?xml version="1.0" standalone="no"?>
 <!DOCTYPE entity PUBLIC "-//UC Berkeley//DTD MoML 1//EN"
     "http://ptolemy.eecs.berkeley.edu/xml/dtd/MoML_1.dtd">
-<entity name="OpenAssessment2v3" class="ptolemy.actor.TypedCompositeActor">
+<entity name="OpenAssessment2_2v2" class="ptolemy.actor.TypedCompositeActor">
     <property name="_createdBy" class="ptolemy.kernel.attributes.VersionAttribute" value="6.0.2">
     </property>
     <property name="DE Director" class="ptolemy.domains.de.kernel.DEDirector">
@@ -16,7 +16,7 @@
     </property>
     <property name="_vergilZoomFactor" class="ptolemy.data.expr.ExpertParameter" value="0.9381865865594">
     </property>
-    <property name="_vergilCenter" class="ptolemy.data.expr.ExpertParameter" value="{1999.2522095959598, 684.850220959596}">
+    <property name="_vergilCenter" class="ptolemy.data.expr.ExpertParameter" value="{1304.7130681818185, 708.9938446969697}">
     </property>
     <property name="Annotation" class="ptolemy.vergil.kernel.attributes.TextAttribute">
         <property name="text" class="ptolemy.kernel.util.StringAttribute" value="This channel must have width 8.">
@@ -35,13 +35,13 @@
         </property>
     </entity>
     <entity name="DisplayB" class="ptolemy.actor.lib.gui.Display">
-        <property name="_windowProperties" class="ptolemy.actor.gui.WindowPropertiesAttribute" value="{bounds={30, 30, 342, 245}, maximized=false}">
+        <property name="_windowProperties" class="ptolemy.actor.gui.WindowPropertiesAttribute" value="{bounds={-8, -8, 1696, 1026}, maximized=true}">
         </property>
         <property name="_location" class="ptolemy.kernel.util.Location" value="[2145.0, 670.0]">
         </property>
     </entity>
     <entity name="Bus" class="lsi.edi.Bus">
-        <property name="bandwidth" class="ptolemy.data.expr.Parameter" value="290">
+        <property name="bandwidth" class="ptolemy.data.expr.Parameter" value="300">
         </property>
         <property name="_location" class="ptolemy.kernel.util.Location" value="[1730.0, 670.0]">
         </property>
@@ -79,11 +79,11 @@
         </property>
         <property name="destination" class="ptolemy.data.expr.Parameter" value="5">
         </property>
-        <property name="comptimeCPU" class="ptolemy.data.expr.Parameter" value="16">
+        <property name="comptimeCPU" class="ptolemy.data.expr.Parameter" value="8">
         </property>
-        <property name="comptimeHW" class="ptolemy.data.expr.Parameter" value="16">
+        <property name="comptimeHW" class="ptolemy.data.expr.Parameter" value="8">
         </property>
-        <property name="comptimeDSP" class="ptolemy.data.expr.Parameter" value="16">
+        <property name="comptimeDSP" class="ptolemy.data.expr.Parameter" value="8">
         </property>
         <property name="messagelength" class="ptolemy.data.expr.Parameter" value="240">
             <property name="_editorFactory" class="ptolemy.vergil.toolbox.VisibleParameterEditorFactory">
@@ -796,11 +796,11 @@
         </property>
         <property name="destination" class="ptolemy.data.expr.Parameter" value="5">
         </property>
-        <property name="comptimeCPU" class="ptolemy.data.expr.Parameter" value="16">
+        <property name="comptimeCPU" class="ptolemy.data.expr.Parameter" value="8">
         </property>
-        <property name="comptimeHW" class="ptolemy.data.expr.Parameter" value="16">
+        <property name="comptimeHW" class="ptolemy.data.expr.Parameter" value="8">
         </property>
-        <property name="comptimeDSP" class="ptolemy.data.expr.Parameter" value="16">
+        <property name="comptimeDSP" class="ptolemy.data.expr.Parameter" value="8">
         </property>
         <property name="messagelength" class="ptolemy.data.expr.Parameter" value="240">
             <property name="_editorFactory" class="ptolemy.vergil.toolbox.VisibleParameterEditorFactory">
@@ -1513,11 +1513,11 @@
         </property>
         <property name="destination" class="ptolemy.data.expr.Parameter" value="5">
         </property>
-        <property name="comptimeCPU" class="ptolemy.data.expr.Parameter" value="16">
+        <property name="comptimeCPU" class="ptolemy.data.expr.Parameter" value="8">
         </property>
-        <property name="comptimeHW" class="ptolemy.data.expr.Parameter" value="16">
+        <property name="comptimeHW" class="ptolemy.data.expr.Parameter" value="8">
         </property>
-        <property name="comptimeDSP" class="ptolemy.data.expr.Parameter" value="16">
+        <property name="comptimeDSP" class="ptolemy.data.expr.Parameter" value="8">
         </property>
         <property name="messagelength" class="ptolemy.data.expr.Parameter" value="240">
             <property name="_editorFactory" class="ptolemy.vergil.toolbox.VisibleParameterEditorFactory">
@@ -2230,11 +2230,11 @@
         </property>
         <property name="destination" class="ptolemy.data.expr.Parameter" value="5">
         </property>
-        <property name="comptimeCPU" class="ptolemy.data.expr.Parameter" value="16">
+        <property name="comptimeCPU" class="ptolemy.data.expr.Parameter" value="8">
         </property>
-        <property name="comptimeHW" class="ptolemy.data.expr.Parameter" value="16">
+        <property name="comptimeHW" class="ptolemy.data.expr.Parameter" value="8">
         </property>
-        <property name="comptimeDSP" class="ptolemy.data.expr.Parameter" value="16">
+        <property name="comptimeDSP" class="ptolemy.data.expr.Parameter" value="8">
         </property>
         <property name="messagelength" class="ptolemy.data.expr.Parameter" value="240">
             <property name="_editorFactory" class="ptolemy.vergil.toolbox.VisibleParameterEditorFactory">
@@ -2947,11 +2947,11 @@
         </property>
         <property name="destination" class="ptolemy.data.expr.Parameter" value="5">
         </property>
-        <property name="comptimeCPU" class="ptolemy.data.expr.Parameter" value="16">
+        <property name="comptimeCPU" class="ptolemy.data.expr.Parameter" value="8">
         </property>
-        <property name="comptimeHW" class="ptolemy.data.expr.Parameter" value="16">
+        <property name="comptimeHW" class="ptolemy.data.expr.Parameter" value="8">
         </property>
-        <property name="comptimeDSP" class="ptolemy.data.expr.Parameter" value="16">
+        <property name="comptimeDSP" class="ptolemy.data.expr.Parameter" value="8">
         </property>
         <property name="messagelength" class="ptolemy.data.expr.Parameter" value="240">
             <property name="_editorFactory" class="ptolemy.vergil.toolbox.VisibleParameterEditorFactory">
@@ -6544,7 +6544,7 @@
         </property>
         <property name="comptimeDSP" class="ptolemy.data.expr.Parameter" value="11">
         </property>
-        <property name="messagelength" class="ptolemy.data.expr.Parameter" value="1000">
+        <property name="messagelength" class="ptolemy.data.expr.Parameter" value="1280">
             <property name="_editorFactory" class="ptolemy.vergil.toolbox.VisibleParameterEditorFactory">
             </property>
         </property>
@@ -7261,7 +7261,7 @@
         </property>
         <property name="comptimeDSP" class="ptolemy.data.expr.Parameter" value="8">
         </property>
-        <property name="messagelength" class="ptolemy.data.expr.Parameter" value="50">
+        <property name="messagelength" class="ptolemy.data.expr.Parameter" value="80">
             <property name="_editorFactory" class="ptolemy.vergil.toolbox.VisibleParameterEditorFactory">
             </property>
         </property>
