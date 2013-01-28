@@ -3,6 +3,9 @@ package y6385133.embs;
 import java.util.ArrayList;
 import java.util.List;
 
+import ptolemy.actor.NoRoomException;
+import ptolemy.kernel.util.IllegalActionException;
+
 public class Bridge {
 	List<Bus> busses;
 	
@@ -11,14 +14,19 @@ public class Bridge {
 	}
 	
 	public void addBus(Bus newBus) {
+		newBus.setBridge(this);
 		busses.add(newBus);
 	}
 	
-	public void lockBusContainingProcessor(int processor, Communication com) {
+	public boolean lockBusContainingProcessor(int processor, Transmission com) throws NoRoomException, IllegalActionException {
 		for (Bus bus : busses) {
 			if (bus.isConnectedToProcessor(processor)) {
-				bus.enqueue(com);
+				bus.enqueue(com.getMessage());
+				
+				return true;
 			}
 		}
+		
+		return false;
 	}
 }
