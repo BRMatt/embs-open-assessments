@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.4-1.40.13 (TeX Live 2012/Debian) (format=pdflatex 2012.11.25)  7 DEC 2012 03:14
+This is pdfTeX, Version 3.1415926-2.4-1.40.13 (TeX Live 2012/Debian) (format=pdflatex 2012.11.25)  7 DEC 2012 03:28
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -728,7 +728,7 @@ LaTeX Warning: `h' float specifier changed to `ht'.
 [1
 
 {/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}] [2 <./embs-blocking.pdf>] 
-<power-consumption.png, id=177, 894.34125pt x 414.54875pt>
+<power-consumption.png, id=176, 894.34125pt x 414.54875pt>
 File: power-consumption.png Graphic file (type png)
 
 <use power-consumption.png>
@@ -743,7 +743,7 @@ Overfull \hbox (42.16953pt too wide) in paragraph at lines 102--103
 LaTeX Warning: Reference `fig-power-consumption' on page 3 undefined on input l
 ine 107.
 
-<power-consumption-saving.png, id=178, 929.4725pt x 554.07pt>
+<power-consumption-saving.png, id=177, 929.4725pt x 554.07pt>
 File: power-consumption-saving.png Graphic file (type png)
 
 <use power-consumption-saving.png>
@@ -754,21 +754,22 @@ Overfull \hbox (59.73512pt too wide) in paragraph at lines 110--111
 | [] 
  []
 
+[3 <./power-consumption.png>] [4 <./power-consumption-saving.png>]
 (/usr/share/texlive/texmf-dist/tex/latex/listings/lstlang1.sty
 File: lstlang1.sty 2004/09/05 1.3 listings language file
 )
 (/usr/share/texlive/texmf-dist/tex/latex/listings/lstlang1.sty
 File: lstlang1.sty 2004/09/05 1.3 listings language file
-) [3 <./power-consumption.png>] [4 <./power-consumption-saving.png>] (../benchm
-ark.sh
+)
+(../benchmark.sh
 LaTeX Font Info:    Try loading font information for OMS+cmr on input line 3.
-
-(/usr/share/texlive/texmf-dist/tex/latex/base/omscmr.fd
+ (/usr/share/texlive/texmf-dist/tex/latex/base/omscmr.fd
 File: omscmr.fd 1999/05/25 v2.5h Standard LaTeX font definitions
 )
 LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10> not available
 (Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 3.
-) [5] (./main.aux)
+)
+[5] (./main.aux)
 
 LaTeX Warning: There were undefined references.
 
@@ -779,7 +780,7 @@ LaTeX Warning: There were multiply-defined labels.
 Here is how much of TeX's memory you used:
  12848 strings out of 495059
  227007 string characters out of 3182029
- 300720 words of memory out of 3000000
+ 299191 words of memory out of 3000000
  15762 multiletter control sequences out of 15000+200000
  9760 words of font info for 35 fonts, out of 3000000 for 9000
  14 hyphenation exceptions out of 8191
@@ -795,7 +796,7 @@ ublic/amsfonts/cm/cmr7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/am
 sfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts
 /cm/cmsy7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmt
 i10.pfb>
-Output written on main.pdf (5 pages, 215721 bytes).
+Output written on main.pdf (5 pages, 217573 bytes).
 PDF statistics:
  224 PDF objects out of 1000 (max. 8388607)
  151 compressed objects within 2 object streams

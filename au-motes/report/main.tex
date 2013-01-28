@@ -5,7 +5,7 @@
 \usepackage{amsmath}
 
 \title{EMBS Autumn Assessment}
-\author{Y6385133}
+\author{Y6385133 \\ 500 words counted with texcount}
 \date{Autumn 2012}
 
 \begin{document}
@@ -13,20 +13,20 @@
 \maketitle
 
 \section{Modelling}
-I chose to model the solution using Mote Runner SDK. The main reasons against using another solution were:
+I modelled my solution using Mote Runner SDK. The reasons against using another solution were:
 
 \begin{description}
     \item[Differences in implementation details] \hfill \\
-        There is no guarantee that applications such as ptollemy would exhibit the same characteristics as a mote
+        No guarantee that applications such as ptollemy would exhibit the same characteristics as motes
     \item[Time constraints] \hfill \\
         I expected the majority of my time would be taken up with debugging the mote {SDK}
 \end{description}
 
 \section{Implementation}
 
-My original implementation observed a channel until it had determined the period, and then analysed
+My original implementation observed a sink until it had determined the period, and then analysed
 the next sink. This worked, but in the worst case situation where the $Sink_A$ has $n=1500$ and $t=10$ the source could block
-for ~ 35s -- over half the time of the entire simulation -- before it analyses other sinks. See figure \ref{fig:long-blocking}.
+for ~ 35s -- over half the time of the entire simulation -- before it analyses other sinks. See figure \ref{fig:long-blocking} for rough illustration.
 
 
 \begin{figure}[h]
@@ -36,10 +36,10 @@ for ~ 35s -- over half the time of the entire simulation -- before it analyses o
 \end{figure}
 
 To fix this I added a timeout that restricts the time the source can spend trying to analyse a
-channel when there are other periods that need estimating.
+sink when there are other periods that need estimating.
 
-The general case for determining a sink's period $t$ involves observing two of the sequence numbers ($n_1, n_2$) emitted by a sink,
-recording the times they were observed ($r_1, r_2$) and then calculating:
+The general case for determining a sink's period $t$ involves observing two sequence numbers ($n_1, n_2$) emitted by a sink,
+recording the times they were observed ($r_1, r_2$):
 
 $$t = \frac{r_2 - r_1} {n_1 - n_2}$$
 
@@ -62,11 +62,11 @@ There is a hard limit of 1600ms to prevent obviously erroneous periods.
 
 \section{Clock Drift}
 
-This is inevitable in systems without a centralised clock, especially when wireless communication is involved.
-To help combat drift the source always performs calculations using times events were triggered at, rather than 
-`current' time. After each broadcast the source schedules a new broadcast in $t * (11 + n)$ ticks and a resync in 
-$(t * (10 + n)) - x$ ticks. The resync is used to verify that the estimated reception period is accurate.
-Unfortunately, this is occasionally missed due to competing transmission slots.
+Inevitable in systems without a centralised clock, especially when wireless communication is involved.
+To prevent, the source always performs calculations using times events were triggered at, rather than 
+`current' time. After each broadcast the source schedules a new broadcast in $t * (11 + n)$ ticks and a verification in 
+$(t * (10 + n)) - x$ ticks. The verification is used to check the estimated reception period is accurate.
+Unfortunately, this is occasionally missed due to competing overlapping times.
 
 \section{Power Saving}
 
@@ -78,7 +78,7 @@ $$
 \mathit{tx\_power}_x = \frac{\mathit{rx\_power}_x} {255} \times 63
 $$
 
-However using this exact value will mean a different min power is required as noise/distance from sink changes. 
+However using this value will mean a different min power is required as noise/distance from sink changes. 
 Instead I transmit at double the minimum required power.
 
 $$
@@ -100,7 +100,7 @@ that reports an extreme increase in current when signal strengths other than max
 
 \begin{figure}
 \noindent\hspace*{-60pt}\includegraphics[scale=0.5]{power-consumption.png}
-\caption{Bug in power consumption measurements}
+\caption{}
 \label{fig:crazy-power}
 \end{figure}
 
@@ -147,7 +147,7 @@ and automated it to test for multiple scenarios:
 \end{figure}
 \paragraph{}
 
-These values were all observed in the simulator so performance on hardware may be different.\
+These values were observed in the simulator so performance on hardware may be different.\
 
 \paragraph{}
 
