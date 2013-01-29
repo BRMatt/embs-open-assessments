@@ -1,7 +1,7 @@
 <?xml version="1.0" standalone="no"?>
 <!DOCTYPE entity PUBLIC "-//UC Berkeley//DTD MoML 1//EN"
     "http://ptolemy.eecs.berkeley.edu/xml/dtd/MoML_1.dtd">
-<entity name="OpenAssessment2_2v2" class="ptolemy.actor.TypedCompositeActor">
+<entity name="OpenAssessment2_2" class="ptolemy.actor.TypedCompositeActor">
     <property name="_createdBy" class="ptolemy.kernel.attributes.VersionAttribute" value="6.0.2">
     </property>
     <property name="DE Director" class="ptolemy.domains.de.kernel.DEDirector">
@@ -16,50 +16,56 @@
     </property>
     <property name="_vergilZoomFactor" class="ptolemy.data.expr.ExpertParameter" value="0.9381865865594">
     </property>
-    <property name="_vergilCenter" class="ptolemy.data.expr.ExpertParameter" value="{1304.7130681818185, 708.9938446969697}">
+    <property name="_vergilCenter" class="ptolemy.data.expr.ExpertParameter" value="{1723.8465909090908, 548.5724431818182}">
     </property>
     <property name="Annotation" class="ptolemy.vergil.kernel.attributes.TextAttribute">
         <property name="text" class="ptolemy.kernel.util.StringAttribute" value="This channel must have width 8.">
         </property>
-        <property name="_location" class="ptolemy.kernel.util.Location" value="[1750.0, 700.0]">
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[2055.0, 405.0]">
+        </property>
+    </property>
+    <property name="Annotation2" class="ptolemy.vergil.kernel.attributes.TextAttribute">
+        <property name="text" class="ptolemy.kernel.util.StringAttribute" value="This channel must have width 8.">
+        </property>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[2075.0, 775.0]">
         </property>
     </property>
     <entity name="MultiTypeProcessor1" class="lsi.edi.MultiTypeProcessorComms">
-        <property name="_location" class="ptolemy.kernel.util.Location" value="[1248.5562744140625, 316.1116027832031]">
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[1245.0, 315.0]">
         </property>
     </entity>
     <entity name="MultiTypeProcessor2" class="lsi.edi.MultiTypeProcessorComms">
         <property name="processor type (0 - CPU, 1 - DSP, 2 - HW)" class="ptolemy.data.expr.Parameter" value="0">
         </property>
-        <property name="_location" class="ptolemy.kernel.util.Location" value="[1249.2261657714844, 394.3733367919922]">
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[1250.0, 400.0]">
         </property>
     </entity>
     <entity name="DisplayB" class="ptolemy.actor.lib.gui.Display">
         <property name="_windowProperties" class="ptolemy.actor.gui.WindowPropertiesAttribute" value="{bounds={-8, -8, 1696, 1026}, maximized=true}">
         </property>
-        <property name="_location" class="ptolemy.kernel.util.Location" value="[2145.0, 670.0]">
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[2230.0, 365.0]">
         </property>
     </entity>
     <entity name="Bus" class="lsi.edi.Bus">
         <property name="bandwidth" class="ptolemy.data.expr.Parameter" value="300">
         </property>
-        <property name="_location" class="ptolemy.kernel.util.Location" value="[1730.0, 670.0]">
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[1725.0, 180.0]">
         </property>
     </entity>
     <entity name="MultiTypeProcessor3" class="lsi.edi.MultiTypeProcessorComms">
         <property name="processor type (0 - CPU, 1 - DSP, 2 - HW)" class="ptolemy.data.expr.Parameter" value="0">
         </property>
-        <property name="_location" class="ptolemy.kernel.util.Location" value="[1249.2261657714844, 469.3733367919922]">
+        <property name="_location" class="ptolemy.kernel.util.Location" value="{1250.0, 470.0}">
         </property>
     </entity>
     <entity name="MultiTypeProcessor4" class="lsi.edi.MultiTypeProcessorComms">
         <property name="processor type (0 - CPU, 1 - DSP, 2 - HW)" class="ptolemy.data.expr.Parameter" value="0">
         </property>
-        <property name="_location" class="ptolemy.kernel.util.Location" value="[1249.2261657714844, 549.3733367919922]">
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[1250.0, 555.0]">
         </property>
     </entity>
     <entity name="VerificationAnalysis" class="lsi.edi.VerificationAnalysis">
-        <property name="_location" class="ptolemy.kernel.util.Location" value="[1980.0, 670.0]">
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[2085.0, 365.0]">
         </property>
     </entity>
     <entity name="Task1" class="ptolemy.actor.TypedCompositeActor">
@@ -11547,37 +11553,37 @@
     <entity name="MultiTypeProcessor6" class="lsi.edi.MultiTypeProcessorComms">
         <property name="processor type (0 - CPU, 1 - DSP, 2 - HW)" class="ptolemy.data.expr.Parameter" value="0">
         </property>
-        <property name="_location" class="ptolemy.kernel.util.Location" value="[1250.6698913574219, 743.2617340087891]">
+        <property name="_location" class="ptolemy.kernel.util.Location" value="{1250.0, 740.0}">
         </property>
     </entity>
     <entity name="MultiTypeProcessor7" class="lsi.edi.MultiTypeProcessorComms">
         <property name="processor type (0 - CPU, 1 - DSP, 2 - HW)" class="ptolemy.data.expr.Parameter" value="0">
         </property>
-        <property name="_location" class="ptolemy.kernel.util.Location" value="[1250.6698913574219, 818.2617340087891]">
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[1250.0, 820.0]">
         </property>
     </entity>
     <entity name="MultiTypeProcessor8" class="lsi.edi.MultiTypeProcessorComms">
         <property name="processor type (0 - CPU, 1 - DSP, 2 - HW)" class="ptolemy.data.expr.Parameter" value="0">
         </property>
-        <property name="_location" class="ptolemy.kernel.util.Location" value="[1250.6698913574219, 898.2617340087891]">
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[1250.0, 895.0]">
         </property>
     </entity>
-    <relation name="relation51" class="ptolemy.actor.TypedIORelation">
-        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+    <entity name="HierachialBusActor" class="y6385133.embs.HierachialBusActor">
+        <property name="bandwidth" class="ptolemy.data.expr.Parameter" value="300">
         </property>
-    </relation>
-    <relation name="relation50" class="ptolemy.actor.TypedIORelation">
-        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[1945.0, 735.0]">
         </property>
-    </relation>
-    <relation name="relation59" class="ptolemy.actor.TypedIORelation">
-        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+    </entity>
+    <entity name="VerificationAnalysis2" class="lsi.edi.VerificationAnalysis">
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[2105.0, 735.0]">
         </property>
-    </relation>
-    <relation name="relation60" class="ptolemy.actor.TypedIORelation">
-        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+    </entity>
+    <entity name="DisplayB2" class="ptolemy.actor.lib.gui.Display">
+        <property name="_windowProperties" class="ptolemy.actor.gui.WindowPropertiesAttribute" value="{bounds={530, 165, 342, 245}, maximized=false}">
         </property>
-    </relation>
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[2240.0, 733.125]">
+        </property>
+    </entity>
     <relation name="relation54" class="ptolemy.actor.TypedIORelation">
         <property name="width" class="ptolemy.data.expr.Parameter" value="1">
         </property>
@@ -11615,22 +11621,6 @@
         </property>
     </relation>
     <relation name="relation36" class="ptolemy.actor.TypedIORelation">
-        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
-        </property>
-    </relation>
-    <relation name="relation37" class="ptolemy.actor.TypedIORelation">
-        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
-        </property>
-    </relation>
-    <relation name="relation38" class="ptolemy.actor.TypedIORelation">
-        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
-        </property>
-    </relation>
-    <relation name="relation40" class="ptolemy.actor.TypedIORelation">
-        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
-        </property>
-    </relation>
-    <relation name="relation42" class="ptolemy.actor.TypedIORelation">
         <property name="width" class="ptolemy.data.expr.Parameter" value="1">
         </property>
     </relation>
@@ -11698,24 +11688,80 @@
         <property name="width" class="ptolemy.data.expr.Parameter" value="1">
         </property>
     </relation>
+    <relation name="relation7" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+        <vertex name="vertex1" value="[1565.0, 335.0]">
+        </vertex>
+    </relation>
+    <relation name="relation18" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+        <vertex name="vertex1" value="[1545.0, 420.0]">
+        </vertex>
+    </relation>
+    <relation name="relation19" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+        <vertex name="vertex1" value="[1525.0, 490.0]">
+        </vertex>
+    </relation>
+    <relation name="relation20" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+        <vertex name="vertex1" value="[1495.0, 575.0]">
+        </vertex>
+    </relation>
+    <relation name="relation21" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+        <vertex name="vertex1" value="[1470.0, 685.0]">
+        </vertex>
+    </relation>
+    <relation name="relation22" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+        <vertex name="vertex1" value="[1445.0, 760.0]">
+        </vertex>
+    </relation>
+    <relation name="relation23" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+        <vertex name="vertex1" value="[1415.0, 840.0]">
+        </vertex>
+    </relation>
+    <relation name="relation24" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+        <vertex name="vertex1" value="[1395.0, 915.0]">
+        </vertex>
+    </relation>
+    <relation name="relation25" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="8">
+        </property>
+    </relation>
+    <relation name="relation26" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+    </relation>
     <link port="MultiTypeProcessor1.input" relation="relation29"/>
-    <link port="MultiTypeProcessor1.comms" relation="relation51"/>
+    <link port="MultiTypeProcessor1.comms" relation="relation7"/>
     <link port="MultiTypeProcessor2.input" relation="relation30"/>
-    <link port="MultiTypeProcessor2.comms" relation="relation50"/>
+    <link port="MultiTypeProcessor2.comms" relation="relation18"/>
     <link port="DisplayB.input" relation="relation54"/>
-    <link port="Bus.input" relation="relation51"/>
-    <link port="Bus.input" relation="relation50"/>
-    <link port="Bus.input" relation="relation59"/>
-    <link port="Bus.input" relation="relation60"/>
-    <link port="Bus.input" relation="relation37"/>
-    <link port="Bus.input" relation="relation38"/>
-    <link port="Bus.input" relation="relation40"/>
-    <link port="Bus.input" relation="relation42"/>
+    <link port="Bus.input" relation="relation20"/>
+    <link port="Bus.input" relation="relation19"/>
+    <link port="Bus.input" relation="relation18"/>
+    <link port="Bus.input" relation="relation7"/>
+    <link port="Bus.input" relation="relation21"/>
+    <link port="Bus.input" relation="relation22"/>
+    <link port="Bus.input" relation="relation23"/>
+    <link port="Bus.input" relation="relation24"/>
     <link port="Bus.output" relation="relation53"/>
     <link port="MultiTypeProcessor3.input" relation="relation31"/>
-    <link port="MultiTypeProcessor3.comms" relation="relation59"/>
+    <link port="MultiTypeProcessor3.comms" relation="relation19"/>
     <link port="MultiTypeProcessor4.input" relation="relation32"/>
-    <link port="MultiTypeProcessor4.comms" relation="relation60"/>
+    <link port="MultiTypeProcessor4.comms" relation="relation20"/>
     <link port="VerificationAnalysis.input" relation="relation53"/>
     <link port="VerificationAnalysis.output" relation="relation54"/>
     <link port="Task1.port" relation="relation2"/>
@@ -11759,11 +11805,23 @@
     <link port="Task14.port" relation="relation16"/>
     <link port="Task15.port" relation="relation17"/>
     <link port="MultiTypeProcessor5.input" relation="relation33"/>
-    <link port="MultiTypeProcessor5.comms" relation="relation37"/>
+    <link port="MultiTypeProcessor5.comms" relation="relation21"/>
     <link port="MultiTypeProcessor6.input" relation="relation34"/>
-    <link port="MultiTypeProcessor6.comms" relation="relation38"/>
+    <link port="MultiTypeProcessor6.comms" relation="relation22"/>
     <link port="MultiTypeProcessor7.input" relation="relation35"/>
-    <link port="MultiTypeProcessor7.comms" relation="relation40"/>
+    <link port="MultiTypeProcessor7.comms" relation="relation23"/>
     <link port="MultiTypeProcessor8.input" relation="relation36"/>
-    <link port="MultiTypeProcessor8.comms" relation="relation42"/>
+    <link port="MultiTypeProcessor8.comms" relation="relation24"/>
+    <link port="HierachialBusActor.busAInput" relation="relation7"/>
+    <link port="HierachialBusActor.busAInput" relation="relation18"/>
+    <link port="HierachialBusActor.busAInput" relation="relation19"/>
+    <link port="HierachialBusActor.busAInput" relation="relation20"/>
+    <link port="HierachialBusActor.busBInput" relation="relation21"/>
+    <link port="HierachialBusActor.busBInput" relation="relation22"/>
+    <link port="HierachialBusActor.busBInput" relation="relation23"/>
+    <link port="HierachialBusActor.busBInput" relation="relation24"/>
+    <link port="HierachialBusActor.output" relation="relation25"/>
+    <link port="VerificationAnalysis2.input" relation="relation25"/>
+    <link port="VerificationAnalysis2.output" relation="relation26"/>
+    <link port="DisplayB2.input" relation="relation26"/>
 </entity>

@@ -7,6 +7,7 @@ import ptolemy.actor.NoRoomException;
 import ptolemy.actor.TypedIOPort;
 import ptolemy.data.IntToken;
 import ptolemy.data.RecordToken;
+import ptolemy.data.expr.Parameter;
 import ptolemy.kernel.util.IllegalActionException;
 
 class Bus {
@@ -43,8 +44,14 @@ class Bus {
 	 * bridges?
 	 */
 	private Bridge bridge;
+
+	private String id;
+
+	private Parameter bandwidth;
 	
-	public Bus(List<Integer> processors, TypedIOPort input, TypedIOPort output) {
+	public Bus(String id, Parameter bandwidth, List<Integer> processors, TypedIOPort input, TypedIOPort output) {
+		this.id         = id;
+		this.bandwidth  = bandwidth;
 		this.processors = processors;
 		this.input  = input;
 		this.output = output;
@@ -80,7 +87,7 @@ class Bus {
 	 * @return
 	 */
 	public double getBandwidth() {
-		return 1;
+		return Double.parseDouble(bandwidth.getExpression());
 	}
 	
 	/**
@@ -92,6 +99,7 @@ class Bus {
 	public double process(double currentTime) throws NoRoomException, IllegalActionException {
 		
 		if(currentTransmission != null && currentTransmission.hasFinishedTransmitting(currentTime)) {
+			System.out.println("["+this.id+"]: <<< Finished transmitting");
 			// The transmission is responsible for calling processMessage()
 			currentTransmission.endTransmission();
 			currentTransmission = null;
@@ -100,14 +108,14 @@ class Bus {
 		for (int i=0,width=input.getWidth();i<width;++i) {
 			if (input.hasToken(i)) {
 				RecordToken packet = (RecordToken) input.get(i);
-				RecordToken comm   = (RecordToken) packet.get("communication");
 				
-				enqueue(new Message(i, comm));
+				enqueue(new Message(processors.get(i), packet));
 			}
 		}
 		
 		// If we're able to dequeue a message in our buffer
 		if (dequeue(currentTime)) {
+			System.out.println("["+this.id+"]: >>> Transmitting a message that will finish at "+currentTransmission.getFinishTime());
 			return currentTransmission.getFinishTime();
 		}
 		
@@ -125,6 +133,8 @@ class Bus {
 	 * @throws IllegalActionException
 	 */
 	public void enqueue(Message message) throws NoRoomException, IllegalActionException {
+		System.out.println("["+this.id+"]: --- Enqueueing message from:"+message.getTaskId()+"("+message.getSourceProcessor()+") internal: "+message.isInternal());
+		
 		if (message.isInternal()) {
 			processMessage(message);
 		} else {
@@ -139,15 +149,18 @@ class Bus {
 	 * @throws IllegalActionException
 	 */
 	public void processMessage(Message communication) throws NoRoomException, IllegalActionException {
-		output.send(communication.getSourceChannel(), communication.getMessageToken());
+		System.out.println("["+this.id+"]: Sending message to "+communication.getDestinationProcessor());
+		output.send(communication.getSourceProcessor(), communication.getMessageToken());
 	}
 	
 	/**
 	 * Attempt to start transmitting a message that is currently in the buffer 
 	 * @param currentTime
 	 * @return
+	 * @throws IllegalActionException 
+	 * @throws NoRoomException 
 	 */
-	private boolean dequeue(double currentTime) {
+	private boolean dequeue(double currentTime) throws NoRoomException, IllegalActionException {
 		if ( ! backlog.isEmpty() && currentTransmission == null) {
 			Message newMessage = backlog.removeFirst();
 			

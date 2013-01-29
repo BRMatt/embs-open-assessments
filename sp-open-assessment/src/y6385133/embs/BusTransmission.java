@@ -30,6 +30,7 @@ public class BusTransmission extends Transmission {
 	 * delivered
 	 */
 	public void endTransmission() throws NoRoomException, IllegalActionException {
+		getMessage().markAsTransmitted();
 		getOriginBus().processMessage(getMessage());
 	}
 }
