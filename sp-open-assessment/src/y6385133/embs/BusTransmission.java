@@ -20,7 +20,7 @@ public class BusTransmission extends Transmission {
 	}
 
 	@Override
-	public boolean hasFinishedTransmitting(double currentTime) {
+	public boolean hasFinishedTransmitting(double currentTime) throws NoRoomException, IllegalActionException {
 		return currentTime >= this.finishTime;
 	}
 

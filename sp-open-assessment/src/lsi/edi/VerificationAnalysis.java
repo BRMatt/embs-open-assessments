@@ -49,28 +49,26 @@ public class VerificationAnalysis extends Verification implements ActionListener
 		JButton mon = new JButton("Toggle message monitoring");
 		mon.addActionListener(this);
 		mon.setActionCommand("monitor");		
-		
+
 		commands = new JPanel();
 		commands.setLayout(new GridLayout(0,1));
 		commands.add(but);
 		commands.add(res);
 		commands.add(mon);
-		
+
 		textarea=new JTextArea();
 		JScrollPane scrollPane = new JScrollPane(textarea); 
 		textarea.setEditable(false);
 
-		
-		
+
 		tabbedPane.addTab("status",scrollPane);
 		tabbedPane.addTab("commands",commands);
-		
-		
+
 		frame.getContentPane().add(tabbedPane);
 		frame.setSize(400,300);
-		
+
 		frame.setVisible(true);
-		
+
 		reset();
 
 	}
@@ -89,13 +87,13 @@ public class VerificationAnalysis extends Verification implements ActionListener
 				double period = ((DoubleToken)packet.get("period")).doubleValue();
 				
 				double totalresponsetime = commfinish - release;
-				String s="task "+id+" ---";
+				String s="task "+String.format("%-10s",id)+" ---";
 				
-				if(totalresponsetime<=period){s=s+"DEADLINE MET ";} else {s=s+"DEADLINE MISSED ";}
+				if(totalresponsetime<=period){s=s+"DEADLINE MET    ";} else {s=s+"DEADLINE MISSED ";}
 				s = s+ "resp time: "+totalresponsetime+" --- period: "+period;
 				StringToken st = new StringToken(s);
 				output.send(0,st);
-				notifyReceipt(id, "task "+id, commfinish, totalresponsetime);				
+				notifyReceipt(id, "task "+id, commfinish, totalresponsetime);
 			}
 			
 		}

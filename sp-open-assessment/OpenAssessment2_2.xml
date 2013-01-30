@@ -16,7 +16,7 @@
     </property>
     <property name="_vergilZoomFactor" class="ptolemy.data.expr.ExpertParameter" value="0.9381865865594">
     </property>
-    <property name="_vergilCenter" class="ptolemy.data.expr.ExpertParameter" value="{1723.8465909090908, 548.5724431818182}">
+    <property name="_vergilCenter" class="ptolemy.data.expr.ExpertParameter" value="{1614.1504103535356, 294.225063131313}">
     </property>
     <property name="Annotation" class="ptolemy.vergil.kernel.attributes.TextAttribute">
         <property name="text" class="ptolemy.kernel.util.StringAttribute" value="This channel must have width 8.">
@@ -49,7 +49,7 @@
     <entity name="Bus" class="lsi.edi.Bus">
         <property name="bandwidth" class="ptolemy.data.expr.Parameter" value="300">
         </property>
-        <property name="_location" class="ptolemy.kernel.util.Location" value="[1725.0, 180.0]">
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[1710.0, 170.0]">
         </property>
     </entity>
     <entity name="MultiTypeProcessor3" class="lsi.edi.MultiTypeProcessorComms">
@@ -11571,7 +11571,7 @@
     <entity name="HierachialBusActor" class="y6385133.embs.HierachialBusActor">
         <property name="bandwidth" class="ptolemy.data.expr.Parameter" value="300">
         </property>
-        <property name="_location" class="ptolemy.kernel.util.Location" value="[1945.0, 735.0]">
+        <property name="_location" class="ptolemy.kernel.util.Location" value="[1780.0, 1030.0]">
         </property>
     </entity>
     <entity name="VerificationAnalysis2" class="lsi.edi.VerificationAnalysis">
@@ -11691,58 +11691,108 @@
     <relation name="relation7" class="ptolemy.actor.TypedIORelation">
         <property name="width" class="ptolemy.data.expr.Parameter" value="1">
         </property>
-        <vertex name="vertex1" value="[1565.0, 335.0]">
+        <vertex name="vertex1" value="[1475.0, 335.0]">
         </vertex>
     </relation>
     <relation name="relation18" class="ptolemy.actor.TypedIORelation">
         <property name="width" class="ptolemy.data.expr.Parameter" value="1">
         </property>
-        <vertex name="vertex1" value="[1545.0, 420.0]">
+        <vertex name="vertex1" value="[1460.0, 420.0]">
         </vertex>
     </relation>
     <relation name="relation19" class="ptolemy.actor.TypedIORelation">
         <property name="width" class="ptolemy.data.expr.Parameter" value="1">
         </property>
-        <vertex name="vertex1" value="[1525.0, 490.0]">
+        <vertex name="vertex1" value="[1445.0, 490.0]">
         </vertex>
     </relation>
     <relation name="relation20" class="ptolemy.actor.TypedIORelation">
         <property name="width" class="ptolemy.data.expr.Parameter" value="1">
         </property>
-        <vertex name="vertex1" value="[1495.0, 575.0]">
+        <vertex name="vertex1" value="[1430.0, 575.0]">
         </vertex>
     </relation>
     <relation name="relation21" class="ptolemy.actor.TypedIORelation">
         <property name="width" class="ptolemy.data.expr.Parameter" value="1">
         </property>
-        <vertex name="vertex1" value="[1470.0, 685.0]">
+        <vertex name="vertex1" value="[1415.0, 685.0]">
         </vertex>
     </relation>
     <relation name="relation22" class="ptolemy.actor.TypedIORelation">
         <property name="width" class="ptolemy.data.expr.Parameter" value="1">
         </property>
-        <vertex name="vertex1" value="[1445.0, 760.0]">
+        <vertex name="vertex1" value="[1400.0, 760.0]">
         </vertex>
     </relation>
     <relation name="relation23" class="ptolemy.actor.TypedIORelation">
         <property name="width" class="ptolemy.data.expr.Parameter" value="1">
         </property>
-        <vertex name="vertex1" value="[1415.0, 840.0]">
+        <vertex name="vertex1" value="{1385.0, 840.0}">
         </vertex>
     </relation>
     <relation name="relation24" class="ptolemy.actor.TypedIORelation">
         <property name="width" class="ptolemy.data.expr.Parameter" value="1">
         </property>
-        <vertex name="vertex1" value="[1395.0, 915.0]">
+        <vertex name="vertex1" value="{1370.0, 915.0}">
         </vertex>
-    </relation>
-    <relation name="relation25" class="ptolemy.actor.TypedIORelation">
-        <property name="width" class="ptolemy.data.expr.Parameter" value="8">
-        </property>
     </relation>
     <relation name="relation26" class="ptolemy.actor.TypedIORelation">
         <property name="width" class="ptolemy.data.expr.Parameter" value="1">
         </property>
+    </relation>
+    <relation name="relation27" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+        <vertex name="vertex1" value="[1370.0, 1070.0]">
+        </vertex>
+    </relation>
+    <relation name="relation28" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+        <vertex name="vertex1" value="[1400.0, 1050.0]">
+        </vertex>
+    </relation>
+    <relation name="relation37" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+        <vertex name="vertex1" value="[1385.0, 1060.0]">
+        </vertex>
+    </relation>
+    <relation name="relation38" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+        <vertex name="vertex1" value="[1415.0, 1040.0]">
+        </vertex>
+    </relation>
+    <relation name="relation39" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+        <vertex name="vertex1" value="[1430.0, 995.0]">
+        </vertex>
+    </relation>
+    <relation name="relation40" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="8">
+        </property>
+        <vertex name="vertex1" value="[1965.0, 860.0]">
+        </vertex>
+    </relation>
+    <relation name="relation25" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+        <vertex name="vertex1" value="[1445.0, 985.0]">
+        </vertex>
+    </relation>
+    <relation name="relation41" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+        <vertex name="vertex1" value="[1460.0, 975.0]">
+        </vertex>
+    </relation>
+    <relation name="relation42" class="ptolemy.actor.TypedIORelation">
+        <property name="width" class="ptolemy.data.expr.Parameter" value="1">
+        </property>
+        <vertex name="vertex1" value="[1475.0, 965.0]">
+        </vertex>
     </relation>
     <link port="MultiTypeProcessor1.input" relation="relation29"/>
     <link port="MultiTypeProcessor1.comms" relation="relation7"/>
@@ -11812,16 +11862,24 @@
     <link port="MultiTypeProcessor7.comms" relation="relation23"/>
     <link port="MultiTypeProcessor8.input" relation="relation36"/>
     <link port="MultiTypeProcessor8.comms" relation="relation24"/>
-    <link port="HierachialBusActor.busAInput" relation="relation7"/>
-    <link port="HierachialBusActor.busAInput" relation="relation18"/>
-    <link port="HierachialBusActor.busAInput" relation="relation19"/>
-    <link port="HierachialBusActor.busAInput" relation="relation20"/>
-    <link port="HierachialBusActor.busBInput" relation="relation21"/>
-    <link port="HierachialBusActor.busBInput" relation="relation22"/>
-    <link port="HierachialBusActor.busBInput" relation="relation23"/>
-    <link port="HierachialBusActor.busBInput" relation="relation24"/>
-    <link port="HierachialBusActor.output" relation="relation25"/>
-    <link port="VerificationAnalysis2.input" relation="relation25"/>
+    <link port="HierachialBusActor.busAInput" relation="relation42"/>
+    <link port="HierachialBusActor.busAInput" relation="relation41"/>
+    <link port="HierachialBusActor.busAInput" relation="relation25"/>
+    <link port="HierachialBusActor.busAInput" relation="relation39"/>
+    <link port="HierachialBusActor.busBInput" relation="relation38"/>
+    <link port="HierachialBusActor.busBInput" relation="relation28"/>
+    <link port="HierachialBusActor.busBInput" relation="relation37"/>
+    <link port="HierachialBusActor.busBInput" relation="relation27"/>
+    <link port="HierachialBusActor.output" relation="relation40"/>
+    <link port="VerificationAnalysis2.input" relation="relation40"/>
     <link port="VerificationAnalysis2.output" relation="relation26"/>
     <link port="DisplayB2.input" relation="relation26"/>
+    <link relation1="relation7" relation2="relation42"/>
+    <link relation1="relation18" relation2="relation41"/>
+    <link relation1="relation19" relation2="relation25"/>
+    <link relation1="relation20" relation2="relation39"/>
+    <link relation1="relation21" relation2="relation38"/>
+    <link relation1="relation22" relation2="relation28"/>
+    <link relation1="relation23" relation2="relation37"/>
+    <link relation1="relation24" relation2="relation27"/>
 </entity>

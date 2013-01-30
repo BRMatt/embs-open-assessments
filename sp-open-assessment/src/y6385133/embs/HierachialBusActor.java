@@ -38,17 +38,26 @@ public class HierachialBusActor extends TypedAtomicActor {
 		bandwidth = new Parameter(this,"bandwidth");
 		bandwidth.setExpression("1");
 		
-		busA = new Bus("A", bandwidth, Arrays.asList(0,1,2,3), busAInput, output);
-		busB = new Bus("B", bandwidth, Arrays.asList(4,5,6,7), busBInput, output);
+		busA = new Bus("A", bandwidth, Arrays.asList(0,1,2,3), busAInput, output, this);
+		busB = new Bus("B", bandwidth, Arrays.asList(4,5,6,7), busBInput, output, this);
 		
 		bridge = new Bridge();
 		bridge.addBus(busA);
 		bridge.addBus(busB);
 	}
 	
+	public void requestFireAt(double atTime) throws IllegalActionException {
+		getDirector().fireAt(this, atTime);
+	}
+	
+	public void requestFireASAP() throws IllegalActionException {
+		getDirector().fireAtCurrentTime(this);
+	}
+	
 	public void fire() throws IllegalActionException{
 		fireBus(busA);
 		fireBus(busB);
+		System.out.println("");
 	}
 	
 	private void fireBus(Bus currentBus) throws NoRoomException, IllegalActionException {
@@ -57,7 +66,7 @@ public class HierachialBusActor extends TypedAtomicActor {
 		double nextFireAt = currentBus.process(director.getCurrentTime());
 		
 		if(nextFireAt > 0) {
-			director.fireAt(this, nextFireAt);
+			requestFireAt(nextFireAt);
 		}
 	}
 }

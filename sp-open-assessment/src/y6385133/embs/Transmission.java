@@ -22,6 +22,10 @@ public abstract class Transmission {
 	}
 	
 	public abstract double getFinishTime();
-	public abstract boolean hasFinishedTransmitting(double currentTime);
+	public abstract boolean hasFinishedTransmitting(double currentTime) throws NoRoomException, IllegalActionException;
 	public abstract void endTransmission() throws NoRoomException, IllegalActionException;
+
+	public double getCurrentResponseTime(double currentTime) {
+		return currentTime - message.getReleaseTime();
+	}
 }

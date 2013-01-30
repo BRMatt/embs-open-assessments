@@ -8,15 +8,19 @@ import ptolemy.kernel.util.IllegalActionException;
 
 public class BridgeTransmission extends Transmission implements Observer {
 	private boolean transmitting = true;
+	private boolean sentToBridge = false;
 	
 	public BridgeTransmission(Message message, Bus originBus) throws NoRoomException, IllegalActionException {
 		super(message, originBus);
 		message.addObserver(this);
-		originBus.getBridge().lockBusContainingProcessor(message.getDestinationProcessor(), this);
+		
+		getOriginBus().
+			getBridge().
+			lockBusContainingProcessor(getMessage().getDestinationProcessor(), this);
 	}
 
 	@Override
-	public boolean hasFinishedTransmitting(double currentTime) {
+	public boolean hasFinishedTransmitting(double currentTime) throws NoRoomException, IllegalActionException {
 		return ! transmitting;
 	}
 
@@ -37,6 +41,15 @@ public class BridgeTransmission extends Transmission implements Observer {
 		
 		if (message.hasBeenTransmitted()) {
 			this.transmitting = false;
+			
+			try {
+				// As this is a long-running transmission we need to manually tell
+				// the bus to re-evaluate and remove this transmission
+				this.getOriginBus().getActor().requestFireASAP();
+			} catch (IllegalActionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}
 

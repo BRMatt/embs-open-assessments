@@ -2,6 +2,7 @@ package y6385133.embs;
 
 import java.util.Observable;
 
+import ptolemy.data.DoubleToken;
 import ptolemy.data.IntToken;
 import ptolemy.data.RecordToken;
 
@@ -13,6 +14,8 @@ class Message extends Observable {
 	private RecordToken communication;
 	private int messageLength;
 	private int taskId;
+	private double taskPeriod;
+	private double releaseTime;
 	
 	public Message(int sourceProcessor, RecordToken token) {
 		this.sourceProcessor = sourceProcessor;
@@ -63,9 +66,24 @@ class Message extends Observable {
 		this.taskId               = ((IntToken) token.get("id")).intValue();
 		this.destinationProcessor = ((IntToken) communication.get("destination")).intValue();
 		this.messageLength        = ((IntToken) communication.get("messagelength")).intValue();
+		this.taskPeriod           = ((DoubleToken) token.get("period")).doubleValue();
+		this.releaseTime          = ((DoubleToken) token.get("releasetime")).doubleValue();
+	}
+	
+	
+	public boolean hasMissedDeadline(double currentTime) {
+		return (currentTime - this.releaseTime) > this.taskPeriod; 
 	}
 
 	public int getTaskId() {
 		return taskId;
+	}
+
+	public double getTaskPeriod() {
+		return this.taskPeriod;
+	}
+
+	public double getReleaseTime() {
+		return this.releaseTime;
 	}
 }

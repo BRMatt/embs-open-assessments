@@ -48,13 +48,20 @@ class Bus {
 	private String id;
 
 	private Parameter bandwidth;
+
+	private HierachialBusActor actor;
 	
-	public Bus(String id, Parameter bandwidth, List<Integer> processors, TypedIOPort input, TypedIOPort output) {
+	public Bus(String id, Parameter bandwidth, List<Integer> processors, TypedIOPort input, TypedIOPort output, HierachialBusActor actor) {
 		this.id         = id;
 		this.bandwidth  = bandwidth;
 		this.processors = processors;
 		this.input  = input;
 		this.output = output;
+		this.actor = actor;
+	}
+	
+	public HierachialBusActor getActor() {
+		return this.actor;
 	}
 	
 	/**
@@ -71,6 +78,14 @@ class Bus {
 	 */
 	public Bridge getBridge() {
 		return this.bridge;
+	}
+	
+	/**
+	 * The transmission currently going over the bus
+	 * @return
+	 */
+	public Transmission getCurrentTransmission() {
+		return this.currentTransmission;
 	}
 	
 	/**
@@ -97,9 +112,8 @@ class Bus {
 	 * @throws NoRoomException 
 	 */
 	public double process(double currentTime) throws NoRoomException, IllegalActionException {
-		
 		if(currentTransmission != null && currentTransmission.hasFinishedTransmitting(currentTime)) {
-			System.out.println("["+this.id+"]: <<< Finished transmitting");
+			log("Finished transmitting "+logRoutingSnippet(currentTransmission.getMessage())+" R>T:"+currentTransmission.getMessage().hasMissedDeadline(currentTime));
 			// The transmission is responsible for calling processMessage()
 			currentTransmission.endTransmission();
 			currentTransmission = null;
@@ -115,11 +129,15 @@ class Bus {
 		
 		// If we're able to dequeue a message in our buffer
 		if (dequeue(currentTime)) {
-			System.out.println("["+this.id+"]: >>> Transmitting a message that will finish at "+currentTransmission.getFinishTime());
+			log("Transmitting "+logRoutingSnippet(currentTransmission.getMessage())+" f:="+currentTransmission.getFinishTime()+" r:="+currentTransmission.getCurrentResponseTime(currentTime)+" t:="+currentTransmission.getMessage().getTaskPeriod());
 			return currentTransmission.getFinishTime();
 		}
 		
 		return 0;
+	}
+	
+	private String logRoutingSnippet(Message message) {
+		return message.getTaskId()+"("+message.getSourceProcessor()+"->"+message.getDestinationProcessor()+")";
 	}
 	
 	/**
@@ -133,12 +151,14 @@ class Bus {
 	 * @throws IllegalActionException
 	 */
 	public void enqueue(Message message) throws NoRoomException, IllegalActionException {
-		System.out.println("["+this.id+"]: --- Enqueueing message from:"+message.getTaskId()+"("+message.getSourceProcessor()+") internal: "+message.isInternal());
+		log("--- Recieved message from:"+message.getSourceProcessor()+"("+message.getTaskId()+") -> "+message.getDestinationProcessor()+" internal: "+message.isInternal()+" connected: "+this.isConnectedToProcessor(message.getDestinationProcessor()));
 		
 		if (message.isInternal()) {
+			log("--- Message is internal to processor, skipping queue");
 			processMessage(message);
 		} else {
 			backlog.push(message);
+			log("--- Pushed onto backlog");
 		}
 	}
 	
@@ -149,7 +169,6 @@ class Bus {
 	 * @throws IllegalActionException
 	 */
 	public void processMessage(Message communication) throws NoRoomException, IllegalActionException {
-		System.out.println("["+this.id+"]: Sending message to "+communication.getDestinationProcessor());
 		output.send(communication.getSourceProcessor(), communication.getMessageToken());
 	}
 	
@@ -174,5 +193,10 @@ class Bus {
 		}
 		
 		return false;
+	}
+	
+	private void log(String message) {
+		String processing = this.currentTransmission == null ? "." : "!";
+		System.out.println(this.actor.getDirector().getCurrentTime()+" ["+this.id+processing+"("+this.backlog.size()+")]: "+message);
 	}
 }
