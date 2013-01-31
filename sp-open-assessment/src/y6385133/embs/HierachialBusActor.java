@@ -55,18 +55,27 @@ public class HierachialBusActor extends TypedAtomicActor {
 	}
 	
 	public void fire() throws IllegalActionException{
-		fireBus(busA);
-		fireBus(busB);
+		double currentTime = getDirector().getCurrentTime();
+		
+		busA.performMaintenance(currentTime);
+		busB.performMaintenance(currentTime);
+		
+		busA.performArbitration(currentTime);
+		busB.performArbitration(currentTime);
+		
+		performTransmission(busA, currentTime);
+		performTransmission(busB, currentTime);
+
 		System.out.println("");
 	}
 	
-	private void fireBus(Bus currentBus) throws NoRoomException, IllegalActionException {
-		Director director = getDirector();
+	private void performTransmission(Bus bus, double currentTime) throws NoRoomException, IllegalActionException {
+		double fireAt = 0;
 		
-		double nextFireAt = currentBus.process(director.getCurrentTime());
+		fireAt = bus.performTransmission(currentTime);
 		
-		if(nextFireAt > 0) {
-			requestFireAt(nextFireAt);
+		if(fireAt > 0) {
+			requestFireAt(fireAt);
 		}
 	}
 }

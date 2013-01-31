@@ -13,17 +13,26 @@ public class Bridge {
 		busses = new ArrayList<Bus>();
 	}
 	
+	/**
+	 * Register the specified bus on this bridge
+	 * @param newBus
+	 */
 	public void addBus(Bus newBus) {
 		newBus.setBridge(this);
 		busses.add(newBus);
 	}
 	
-	public boolean lockBusContainingProcessor(int processor, Transmission com) throws NoRoomException, IllegalActionException {
+	/**
+	 * Asks the arbitrar on the remote bus if the specified message
+	 * can be broadcast immediately
+	 * 
+	 * @param message
+	 * @return 
+	 */
+	public boolean reserveRemoteArbitration(Message message) {
 		for (Bus bus : busses) {
-			if (bus.isConnectedToProcessor(processor)) {
-				bus.enqueue(com.getMessage());
-				
-				return true;
+			if (bus.isConnectedToProcessor(message.getDestinationProcessor())) {
+				return bus.requestTransmissionToken(message);
 			}
 		}
 		

@@ -13,10 +13,6 @@ public class BridgeTransmission extends Transmission implements Observer {
 	public BridgeTransmission(Message message, Bus originBus) throws NoRoomException, IllegalActionException {
 		super(message, originBus);
 		message.addObserver(this);
-		
-		getOriginBus().
-			getBridge().
-			lockBusContainingProcessor(getMessage().getDestinationProcessor(), this);
 	}
 
 	@Override

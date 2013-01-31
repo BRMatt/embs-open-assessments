@@ -2,6 +2,7 @@ package y6385133.embs;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.PriorityQueue;
 
 import ptolemy.actor.NoRoomException;
 import ptolemy.actor.TypedIOPort;
@@ -50,6 +51,13 @@ class Bus {
 	private Parameter bandwidth;
 
 	private HierachialBusActor actor;
+
+	/**
+	 * This is the next candidate for transmission on the bus
+	 * This represents the message that we know for definite can be transmitted
+	 * on the bus
+	 */
+	private Message nextForTransmission;
 	
 	public Bus(String id, Parameter bandwidth, List<Integer> processors, TypedIOPort input, TypedIOPort output, HierachialBusActor actor) {
 		this.id         = id;
@@ -106,12 +114,12 @@ class Bus {
 	}
 	
 	/**
-	 * Take a job off the queue
-	 * @return
+	 * Maintenance includes things like checking that the current transmission has finished processing
+	 * and reading messages from input ports
 	 * @throws IllegalActionException 
 	 * @throws NoRoomException 
 	 */
-	public double process(double currentTime) throws NoRoomException, IllegalActionException {
+	public void performMaintenance(double currentTime) throws NoRoomException, IllegalActionException {
 		if(currentTransmission != null && currentTransmission.hasFinishedTransmitting(currentTime)) {
 			log("Finished transmitting "+logRoutingSnippet(currentTransmission.getMessage())+" R>T:"+currentTransmission.getMessage().hasMissedDeadline(currentTime));
 			// The transmission is responsible for calling processMessage()
@@ -123,21 +131,91 @@ class Bus {
 			if (input.hasToken(i)) {
 				RecordToken packet = (RecordToken) input.get(i);
 				
-				enqueue(new Message(processors.get(i), packet));
+				enqueue(new Message(processors.get(i), packet, currentTime));
 			}
 		}
-		
+	}
+	
+	/**
+	 * Attempts to find the next best message to transmit on this bus
+	 * 
+	 * @param currentTime
+	 */
+	public void performArbitration(double currentTime) {
+		if(nextForTransmission == null && ! backlog.isEmpty()) {
+			Message transmissionCandidate = backlog.peekFirst();
+			
+			if(destinationIsOnThisBus(transmissionCandidate) || remoteBusWillArbitrateMessage(transmissionCandidate)) {
+				nextForTransmission = transmissionCandidate;
+			}
+		}
+	}
+	
+	/**
+	 * Take a job off the queue
+	 * @return
+	 * @throws IllegalActionException 
+	 * @throws NoRoomException 
+	 */
+	public double performTransmission(double currentTime) throws NoRoomException, IllegalActionException {
 		// If we're able to dequeue a message in our buffer
 		if (dequeue(currentTime)) {
 			log("Transmitting "+logRoutingSnippet(currentTransmission.getMessage())+" f:="+currentTransmission.getFinishTime()+" r:="+currentTransmission.getCurrentResponseTime(currentTime)+" t:="+currentTransmission.getMessage().getTaskPeriod());
+			
 			return currentTransmission.getFinishTime();
 		}
 		
 		return 0;
 	}
 	
-	private String logRoutingSnippet(Message message) {
-		return message.getTaskId()+"("+message.getSourceProcessor()+"->"+message.getDestinationProcessor()+")";
+	
+	
+	/**
+	 * Allows the bridge to request this bus start transmitting a message locally
+	 * The arbitrar will only allow the incoming message to start transmitting if:
+	 * 
+	 * * There is nothing currently running
+	 * * This bus is connected to the processor the message requires
+	 * * The best candidate for arbitration on this bus arrived after the message
+	 * 
+	 * @param message
+	 * @return
+	 */
+	public boolean requestTransmissionToken(Message message) {
+		if (currentTransmission != null) {
+			log("=== Transmission token for "+logRoutingSnippet(message)+" denied - currently running");
+			return false;
+		}
+		
+		if( ! isConnectedToProcessor(message.getDestinationProcessor())) {
+			log("=== Transmission token for "+logRoutingSnippet(message)+" denied - not connected to processor");
+			return false;
+		}
+		
+		if(isConnectedToProcessor(message.getSourceProcessor())) {
+			log("### Something has gone wrong, not granting remote transmission token to myself! "+logRoutingSnippet(message));
+			return false;
+		}
+		
+		Message localBest = null;
+		
+		if ( ! backlog.isEmpty()) {
+			localBest = backlog.peek();
+			
+			if (localBest.arrivedOnBusBefore(message)) {
+				log("=== Transmission token for "+logRoutingSnippet(message)+" denied - local master requested transmission earlier");
+				return false;
+			}
+
+			// TODO: Add some least-laxity shizzle?
+		}
+
+		log("=== Transmission token granted for remote message "+logRoutingSnippet(message)+(localBest == null ? "" : "local:"+localBest.getBusArrivalTime()+" remote:"+message.getBusArrivalTime()));
+		
+		nextForTransmission = message;
+		backlog.addFirst(message);
+		
+		return true;
 	}
 	
 	/**
@@ -150,14 +228,14 @@ class Bus {
 	 * @throws NoRoomException
 	 * @throws IllegalActionException
 	 */
-	public void enqueue(Message message) throws NoRoomException, IllegalActionException {
-		log("--- Recieved message from:"+message.getSourceProcessor()+"("+message.getTaskId()+") -> "+message.getDestinationProcessor()+" internal: "+message.isInternal()+" connected: "+this.isConnectedToProcessor(message.getDestinationProcessor()));
+	private void enqueue(Message message) throws NoRoomException, IllegalActionException {
+		log("--- Recieved message from:"+logRoutingSnippet(message)+" internal: "+message.isInternal()+" connected: "+this.isConnectedToProcessor(message.getDestinationProcessor()));
 		
 		if (message.isInternal()) {
 			log("--- Message is internal to processor, skipping queue");
 			processMessage(message);
 		} else {
-			backlog.push(message);
+			backlog.add(message);
 			log("--- Pushed onto backlog");
 		}
 	}
@@ -174,29 +252,51 @@ class Bus {
 	
 	/**
 	 * Attempt to start transmitting a message that is currently in the buffer 
+	 * Will only start transmitting a message if 
+	 * 
+	 * a) There is something to transmit
+	 * b) Something is not currently transmitting
+	 * c) Arbitration is possible
+	 *
 	 * @param currentTime
 	 * @return
 	 * @throws IllegalActionException 
 	 * @throws NoRoomException 
 	 */
 	private boolean dequeue(double currentTime) throws NoRoomException, IllegalActionException {
-		if ( ! backlog.isEmpty() && currentTransmission == null) {
-			Message newMessage = backlog.removeFirst();
-			
-			if(this.isConnectedToProcessor(newMessage.getDestinationProcessor())) {
-				currentTransmission = new BusTransmission(currentTime, newMessage, this);
-			} else {
-				currentTransmission = new BridgeTransmission(newMessage, this);
-			}
-		
-			return true;
+		if ( nextForTransmission == null || currentTransmission != null ) {
+			return false;
 		}
 		
-		return false;
+		if(isConnectedToProcessor(nextForTransmission.getDestinationProcessor())) {
+			log("+++ Setting up internal transmission for "+logRoutingSnippet(nextForTransmission));
+			currentTransmission = new BusTransmission(currentTime, backlog.removeFirst(), this);
+		} else {
+			log("+++ Setting up cross-bridge transmission for "+logRoutingSnippet(nextForTransmission));
+			// nextForTransmission is only populated with a message that crosses the bridge
+			// if we have already established with the remote bridge that it will be arbitrated
+			currentTransmission = new BridgeTransmission(backlog.removeFirst(), this);
+		}
+		
+		nextForTransmission = null;
+		
+		return true;
+	}
+	
+	private boolean destinationIsOnThisBus(Message transmissionCandidate){
+		return isConnectedToProcessor(transmissionCandidate.getDestinationProcessor());
+	}
+	
+	private boolean remoteBusWillArbitrateMessage(Message transmissionCandidate) {
+		return getBridge().reserveRemoteArbitration(transmissionCandidate);
 	}
 	
 	private void log(String message) {
 		String processing = this.currentTransmission == null ? "." : "!";
 		System.out.println(this.actor.getDirector().getCurrentTime()+" ["+this.id+processing+"("+this.backlog.size()+")]: "+message);
 	}
+	
+	private String logRoutingSnippet(Message message) {
+		return message.getTaskId()+"("+message.getSourceProcessor()+"->"+message.getDestinationProcessor()+")";
+	}	
 }
