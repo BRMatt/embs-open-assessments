@@ -298,5 +298,11 @@ class Bus {
 	
 	private String logRoutingSnippet(Message message) {
 		return message.getTaskId()+"("+message.getSourceProcessor()+"->"+message.getDestinationProcessor()+")";
+	}
+
+	public void reset() {
+		backlog.clear();
+		nextForTransmission = null;
+		currentTransmission = null;
 	}	
 }

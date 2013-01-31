@@ -141,7 +141,7 @@ class Message extends Observable {
 	}
 
 	public boolean arrivedOnBusBefore(Message peekFirst) {
-		return getBusArrivalTime() > peekFirst.getBusArrivalTime();
+		return getBusArrivalTime() < peekFirst.getBusArrivalTime();
 	}
 
 	public boolean arrivedOnBusAtTheSameTimeAs(Message localBest) {

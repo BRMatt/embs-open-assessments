@@ -46,6 +46,11 @@ public class HierachialBusActor extends TypedAtomicActor {
 		bridge.addBus(busB);
 	}
 	
+	public void initialize() {
+		busA.reset();
+		busB.reset();
+	}
+	
 	public void requestFireAt(double atTime) throws IllegalActionException {
 		getDirector().fireAt(this, atTime);
 	}

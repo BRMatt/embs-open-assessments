@@ -16,7 +16,7 @@
     </property>
     <property name="_vergilZoomFactor" class="ptolemy.data.expr.ExpertParameter" value="0.9381865865594">
     </property>
-    <property name="_vergilCenter" class="ptolemy.data.expr.ExpertParameter" value="{1614.1504103535356, 294.225063131313}">
+    <property name="_vergilCenter" class="ptolemy.data.expr.ExpertParameter" value="{1580.3270202020203, 576.086647727273}">
     </property>
     <property name="Annotation" class="ptolemy.vergil.kernel.attributes.TextAttribute">
         <property name="text" class="ptolemy.kernel.util.StringAttribute" value="This channel must have width 8.">
@@ -41,7 +41,9 @@
         </property>
     </entity>
     <entity name="DisplayB" class="ptolemy.actor.lib.gui.Display">
-        <property name="_windowProperties" class="ptolemy.actor.gui.WindowPropertiesAttribute" value="{bounds={-8, -8, 1696, 1026}, maximized=true}">
+        <property name="title" class="ptolemy.kernel.util.StringAttribute" value="Leandro">
+        </property>
+        <property name="_windowProperties" class="ptolemy.actor.gui.WindowPropertiesAttribute" value="{bounds={0, 0, 840, 1010}, maximized=false}">
         </property>
         <property name="_location" class="ptolemy.kernel.util.Location" value="[2230.0, 365.0]">
         </property>
@@ -11579,7 +11581,9 @@
         </property>
     </entity>
     <entity name="DisplayB2" class="ptolemy.actor.lib.gui.Display">
-        <property name="_windowProperties" class="ptolemy.actor.gui.WindowPropertiesAttribute" value="{bounds={530, 165, 342, 245}, maximized=false}">
+        <property name="title" class="ptolemy.kernel.util.StringAttribute" value="Mine">
+        </property>
+        <property name="_windowProperties" class="ptolemy.actor.gui.WindowPropertiesAttribute" value="{bounds={840, 0, 840, 1010}, maximized=false}">
         </property>
         <property name="_location" class="ptolemy.kernel.util.Location" value="[2240.0, 733.125]">
         </property>
